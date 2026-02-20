@@ -21,9 +21,11 @@
 		"lint:js": "npx eslint --fix",
 		"packages-update": "wp-scripts packages-update",
 		"plugin-zip": "wp-scripts build && wp-scripts plugin-zip",
-		"start": "wp-scripts start/"
+		"start": "wp-scripts start"
 	},
 	"devDependencies": {
+		"@wordpress/base-styles": "^6.16.0",
+		"@wordpress/components": "^32.2.0",
 		"@wordpress/scripts": "^31.5.0"
 	}
 }

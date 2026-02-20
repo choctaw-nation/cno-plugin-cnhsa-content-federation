@@ -74,65 +74,6 @@ class Admin_Screen {
 			},
 			'cnhsa-federation-settings'
 		);
-		$settings_fields = array(
-			'username'     => array(
-				'label'    => 'Username',
-				'callback' => array( $this, 'field_username_cb' ),
-			),
-			'app_password' => array(
-				'label'    => 'Application Password',
-				'callback' => array( $this, 'field_app_password_cb' ),
-			),
-		);
-		foreach ( $settings_fields as $id => $field ) {
-			add_settings_field(
-				$id,
-				$field['label'],
-				$field['callback'],
-				'cnhsa-federation-settings',
-				'cnhsa_federation_main'
-			);
-		}
-
-		add_settings_section(
-			'cnhsa_federation_targets',
-			'Federation Targets',
-			function () {
-				printf(
-					'<p>Create an application password in your %s and paste it here.<br/><em>Note, you must have Administrator privileges on the CNHSA site for your application password to work.</em></p>',
-					sprintf(
-						'<a href="%s" target="_blank">%s</a>',
-						esc_url( 'https://www.cnhsa.com/wp-admin/profile.php#application-passwords-section' ),
-						esc_html( 'CNHSA User Profile page' )
-					)
-				);
-			},
-			'cnhsa-federation-settings'
-		);
-		$targets_fields = array(
-			'environments' => array(
-				'label'    => 'Environments',
-				'callback' => array( $this, 'field_environments_cb' ),
-			),
-			'local'        => array(
-				'label'    => 'Local Environment URL',
-				'callback' => function () {
-					echo '<p class="description">Check this box to allow federation to the local environment (this site). Useful for testing.</p>';
-					printf(
-						'<label><input type="text" name="cnhsa_federation_options[environments][]" value="local" /> Allow local federation</label>'
-					);
-				},
-			),
-		);
-		foreach ( $targets_fields as $id => $field ) {
-			add_settings_field(
-				$id,
-				$field['label'],
-				$field['callback'],
-				'cnhsa-federation-settings',
-				'cnhsa_federation_targets'
-			);
-		}
 	}
 
 	/**

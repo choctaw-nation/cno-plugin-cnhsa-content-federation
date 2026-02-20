@@ -18,6 +18,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 foreach ( glob( __DIR__ . '/inc/*.php' ) as $file ) {
 	require_once $file;
 }
+
 /**
  * Activation callback: initialize default options.
  */
@@ -36,6 +37,7 @@ function cnhsa_federation_activate() {
 		$opts = wp_parse_args( $opts, $defaults );
 		update_option( 'cnhsa_federation_options', $opts );
 	}
+	flush_rewrite_rules();
 }
 
 /**

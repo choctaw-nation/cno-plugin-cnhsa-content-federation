@@ -20,7 +20,7 @@
 		"editor.formatOnSave": false
 	},
 	"[typescriptreact]": {
-		"editor.formatOnSave": false
+		"editor.formatOnSave": true
 	},
 	"[yaml]": {
 		"editor.autoIndent": "advanced",
