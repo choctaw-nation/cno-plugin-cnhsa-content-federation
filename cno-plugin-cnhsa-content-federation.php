@@ -24,10 +24,28 @@ foreach ( glob( __DIR__ . '/inc/*.php' ) as $file ) {
  */
 function cnhsa_federation_activate() {
 	$defaults = array(
-		'username'     => '',
-		'app_password' => '',
-		'instructions' => "Create an application password in your profile and paste it here.\nVisit Users → Profile → Application Passwords.",
+		// selected environments to federate to
 		'environments' => array(),
+		// credentials per environment
+		'credentials'  => array(
+			'production'  => array(
+				'username'     => '',
+				'app_password' => '',
+			),
+			'staging'     => array(
+				'username'     => '',
+				'app_password' => '',
+			),
+			'development' => array(
+				'username'     => '',
+				'app_password' => '',
+			),
+			'local'       => array(
+				'username'     => '',
+				'app_password' => '',
+			),
+		),
+		'instructions' => "Create an application password in your profile and paste it here.\nVisit Users → Profile → Application Passwords.",
 	);
 
 	if ( false === get_option( 'cnhsa_federation_options', false ) ) {

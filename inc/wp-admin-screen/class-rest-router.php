@@ -56,6 +56,13 @@ class Rest_Router extends WP_REST_Controller {
 	 */
 	public function get_settings( WP_REST_Request $request ) {
 		$opts = get_option( 'cnhsa_federation_options', array() );
+		// Prefer transient-stored local URL (expires after 30 days), fall back to saved option for back-compat
+		$local = get_transient( 'cnhsa_federation_local_url' );
+		if ( false !== $local ) {
+			$opts['localUrl'] = $local;
+		} elseif ( isset( $opts['localUrl'] ) ) {
+			$opts['localUrl'] = $opts['localUrl'];
+		}
 		return rest_ensure_response( $opts );
 	}
 
@@ -71,12 +78,10 @@ class Rest_Router extends WP_REST_Controller {
 			return new WP_Error( 'invalid_data', 'Invalid request payload', array( 'status' => 400 ) );
 		}
 
-		$output                 = array();
-		$output['username']     = isset( $params['username'] ) ? sanitize_text_field( $params['username'] ) : '';
-		$output['app_password'] = isset( $params['app_password'] ) ? sanitize_text_field( $params['app_password'] ) : '';
-		$output['instructions'] = isset( $params['instructions'] ) ? sanitize_textarea_field( $params['instructions'] ) : '';
+		$output = array();
 
-		$allowed  = array( 'production', 'staging', 'development' );
+		// Selected environments
+		$allowed  = array( 'production', 'staging', 'development', 'local' );
 		$selected = array();
 		if ( isset( $params['environments'] ) && is_array( $params['environments'] ) ) {
 			foreach ( $params['environments'] as $val ) {
@@ -88,7 +93,48 @@ class Rest_Router extends WP_REST_Controller {
 		}
 		$output['environments'] = $selected;
 
+		// Credentials per environment: accept `credentials` map if provided
+		$creds_out = array();
+		if ( isset( $params['credentials'] ) && is_array( $params['credentials'] ) ) {
+			foreach ( $params['credentials'] as $env => $creds ) {
+				if ( ! in_array( $env, array( 'production', 'staging', 'development', 'local' ), true ) ) {
+					continue;
+				}
+				$creds_out[ $env ] = array(
+					'username'     => isset( $creds['username'] ) ? sanitize_text_field( $creds['username'] ) : '',
+					'app_password' => isset( $creds['app_password'] ) ? sanitize_text_field( $creds['app_password'] ) : '',
+				);
+			}
+		} else {
+			// Back-compat: if top-level username/app_password provided, apply to selected envs
+			$global_user = isset( $params['username'] ) ? sanitize_text_field( $params['username'] ) : '';
+			$global_pass = isset( $params['app_password'] ) ? sanitize_text_field( $params['app_password'] ) : '';
+			if ( $global_user || $global_pass ) {
+				foreach ( $selected as $env ) {
+					$creds_out[ $env ] = array(
+						'username'     => $global_user,
+						'app_password' => $global_pass,
+					);
+				}
+			}
+		}
+		$output['credentials'] = $creds_out;
+
+		// Local URL: store in transient for 30 days if provided (do not persist permanently)
+		if ( isset( $params['localUrl'] ) ) {
+			$local = esc_url_raw( $params['localUrl'] );
+			set_transient( 'cnhsa_federation_local_url', $local, DAY_IN_SECONDS * 30 );
+		}
+
 		update_option( 'cnhsa_federation_options', $output );
+
+		// include transient value in response if set
+		$trans_local = get_transient( 'cnhsa_federation_local_url' );
+		if ( false !== $trans_local ) {
+			$output['localUrl'] = $trans_local;
+		}
+
+		return rest_ensure_response( $output );
 
 		return rest_ensure_response( $output );
 	}

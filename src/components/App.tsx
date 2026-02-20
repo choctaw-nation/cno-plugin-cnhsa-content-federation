@@ -5,6 +5,7 @@ import {
 	Panel,
 	Button,
 	Flex,
+	TextControl,
 } from '@wordpress/components';
 import useOptions from '../hooks/useOptions';
 import TargetCredentials from './TargetCredentials';
@@ -76,13 +77,13 @@ export default function App( { restUrl, nonce }: Props ) {
 
 	return (
 		<form onSubmit={ onSubmit }>
-			{ message && <Notice status="success">{ message }</Notice> }
-			{ errors && <Notice status="error">{ errors }</Notice> }
 			<Flex
 				direction="column"
 				gap={ 4 }
 				style={ { marginBottom: '1rem' } }
 			>
+				{ message && <Notice status="success">{ message }</Notice> }
+				{ errors && <Notice status="error">{ errors }</Notice> }
 				<Panel header="Federation Targets">
 					<Flex
 						gap={ 2 }
@@ -116,24 +117,19 @@ export default function App( { restUrl, nonce }: Props ) {
 							'local'
 						) && (
 							<div style={ { marginTop: '1rem' } }>
-								<label>
-									Local URL
-									<input
-										type="text"
-										value={ options.localUrl || '' }
-										onChange={ ( e ) =>
-											setOptions( {
-												...options,
-												localUrl: e.target.value,
-											} )
-										}
-										className="regular-text"
-										style={ {
-											display: 'block',
-											marginTop: '0.5rem',
-										} }
-									/>
-								</label>
+								<TextControl
+									type="text"
+									label="Local URL"
+									help="This value expires after 30 days."
+									placeholder="https://cnhsa.local"
+									value={ options.localUrl || '' }
+									onChange={ ( val ) =>
+										setOptions( {
+											...options,
+											localUrl: val,
+										} )
+									}
+								/>
 							</div>
 						) }
 					</Flex>
@@ -145,6 +141,7 @@ export default function App( { restUrl, nonce }: Props ) {
 							options.environments.map( ( env ) => (
 								<TargetCredentials
 									key={ env }
+									env={ env }
 									label={
 										env.charAt( 0 ).toUpperCase() +
 										env.slice( 1 )

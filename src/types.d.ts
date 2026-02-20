@@ -1,8 +1,13 @@
-export type Options = {
+export type Environment = 'local' | 'staging' | 'production' | 'development';
+
+export type Credential = {
 	username?: string;
 	app_password?: string;
-	instructions?: string;
-	environments?: Environment[];
 };
 
-export type Environment = 'local' | 'staging' | 'production'|'development';
+export type Options = {
+	instructions?: string;
+	environments?: Environment[];
+	localUrl?: string;
+	credentials?: Partial<Record<Environment, Credential>>;
+};

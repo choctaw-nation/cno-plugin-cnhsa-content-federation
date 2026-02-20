@@ -1,5 +1,6 @@
 import { useEffect, useState } from '@wordpress/element';
 import apiFetch from '@wordpress/api-fetch';
+import type { Options } from '../types';
 
 export default function useOptions( restUrl: string ) {
 	const [ options, setOptions ] = useState< Options | null >( null );
