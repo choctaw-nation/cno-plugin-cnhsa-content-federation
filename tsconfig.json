@@ -1,0 +1,23 @@
+{
+	"compilerOptions": {
+		"target": "es6",
+		"lib": [ "dom", "dom.iterable", "esnext" ],
+		"allowJs": true,
+		"checkJs": true,
+		"skipLibCheck": true,
+		"strict": true,
+		"forceConsistentCasingInFileNames": true,
+		"noEmit": true,
+		"esModuleInterop": true,
+		"module": "esnext",
+		"moduleResolution": "node",
+		"noImplicitAny": false,
+		"resolveJsonModule": true,
+		"isolatedModules": true,
+		"jsx": "preserve",
+		"baseUrl": "src/",
+		"typeRoots": [ "./node_modules/@types", "src/js/**/types" ]
+	},
+	"include": [ "src/js/**/*" ],
+	"exclude": [ "node_modules" ]
+}

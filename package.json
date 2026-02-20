@@ -1,13 +1,29 @@
 {
 	"name": "cno-plugin-cnhsa-content-federation",
-	"version": "0.1.0",
+	"version": "0.2.0",
 	"description": "",
 	"author": "Choctaw Nation of Oklahoma",
 	"license": "GPL-3.0-or-later",
 	"directories": {
 		"test": "tests"
 	},
+	"files": [
+		"inc/",
+		"cno-plugin-cnhsa-content-federation.php",
+		"README.md",
+		"CHANGELOG.md",
+		"build/"
+	],
 	"scripts": {
-		"plugin-zip": "node bin/plugin-zip.mjs"
+		"build": "wp-scripts build",
+		"format": "wp-scripts format",
+		"lint:css": "npx stylelint '**/*.scss' '**/*.css' --fix",
+		"lint:js": "npx eslint --fix",
+		"packages-update": "wp-scripts packages-update",
+		"plugin-zip": "wp-scripts build && wp-scripts plugin-zip",
+		"start": "wp-scripts start/"
+	},
+	"devDependencies": {
+		"@wordpress/scripts": "^31.5.0"
 	}
 }

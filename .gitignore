@@ -16,4 +16,5 @@ vendor/
 
 .vscode/launch.json
 .wp-tests/
+build/
 html-coverage/
