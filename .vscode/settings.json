@@ -1,0 +1,69 @@
+{
+	"[php]": {
+		"editor.autoIndent": "advanced",
+		"editor.defaultFormatter": "wongjn.php-sniffer",
+		"editor.detectIndentation": true,
+		"editor.formatOnSave": true,
+		"editor.indentSize": "tabSize",
+		"editor.insertSpaces": false,
+		"editor.useTabStops": true,
+		"prettier.tabWidth": 4,
+		"prettier.useTabs": true
+	},
+	"[yaml]": {
+		"editor.autoIndent": "advanced",
+		"editor.detectIndentation": true,
+		"editor.indentSize": "tabSize",
+		"editor.quickSuggestions": {
+			"comments": false,
+			"other": true,
+			"strings": true
+		},
+		"editor.tabSize": 2,
+		"editor.useTabStops": true,
+		"prettier.useTabs": false
+	},
+	"cSpell.words": [
+		"Achvffa",
+		"Achʋffa",
+		"Apim",
+		"autoptimize",
+		"autoupdater",
+		"azvr",
+		"Batton",
+		"biskinik",
+		"choctawnation",
+		"choctawnationofoklahoma",
+		"CNHSA",
+		"cnodev",
+		"cnolive",
+		"cnostaging",
+		"fabvssa",
+		"Fabʋssa",
+		"fwrite",
+		"gforms",
+		"gravityform",
+		"Halito",
+		"httpversion",
+		"instantiator",
+		"kses",
+		"oembed",
+		"postarr",
+		"putenv",
+		"relevanssi",
+		"searchandfilter",
+		"spai",
+		"Squiz",
+		"trackbacks",
+		"twicedaily",
+		"wordfence",
+		"wpengine"
+	],
+	"editor.codeActionsOnSave": {
+		"source.fixAll.eslint": "always",
+		"source.fixAll.stylelint": "always"
+	},
+	"editor.defaultFormatter": "esbenp.prettier-vscode",
+	"html.format.templating": true,
+	"phpSniffer.standard": "phpcs.xml.dist"
+}

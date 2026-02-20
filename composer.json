@@ -1,0 +1,44 @@
+{
+	"name": "cno/cnhsa-content-federation",
+	"description": "The plugin for CNHSA content federation.",
+	"type": "project",
+	"version": "0.1.0",
+	"autoload-dev": {
+		"psr-4": {
+			"Tests\\": "tests/"
+		}
+	},
+	"extra": {
+		"installer-paths": {
+			"vendor/{$name}/": [
+				"wpengine/advanced-custom-fields"
+			]
+		}
+	},
+	"require-dev": {
+		"doctrine/instantiator": "^1",
+		"wp-coding-standards/wpcs": "*",
+		"phpunit/phpunit": "^9",
+		"yoast/phpunit-polyfills": "^4.0"
+	},
+	"config": {
+		"allow-plugins": {
+			"composer/installers": true,
+			"dealerdirect/phpcodesniffer-composer-installer": true
+		}
+	},
+	"scripts": {
+		"phpcs": "phpcs inc/ --extensions=php",
+		"phpcbf": "phpcbf inc/ --extensions=php",
+		"test": "phpunit",
+		"install-tests": [
+			"chmod +x bin/local-mysql-socket.sh",
+			"bash -lc 'SOCK=\"$(bin/local-mysql-socket.sh)\"; bash -x bin/install-wp-tests.sh wordpress_test root root \"$SOCK\" latest'"
+		]
+	},
+	"authors": [
+		{
+			"name": "Choctaw Nation of Oklahoma"
+		}
+	]
+}

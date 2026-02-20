@@ -1,0 +1,13 @@
+{
+	"name": "cno-plugin-cnhsa-content-federation",
+	"version": "0.1.0",
+	"description": "",
+	"author": "Choctaw Nation of Oklahoma",
+	"license": "GPL-3.0-or-later",
+	"directories": {
+		"test": "tests"
+	},
+	"scripts": {
+		"plugin-zip": "node bin/plugin-zip.mjs"
+	}
+}
