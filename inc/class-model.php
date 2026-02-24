@@ -17,25 +17,6 @@ use WP_Post;
  * Manages the data operations for the CNHSA Federation.
  */
 class Model {
-	/**
-	 * Updates a service in the CNHSA Federation.
-	 *
-	 * @param int     $post_id The ID of the post to update.
-	 * @param WP_Post $data The data to update the service with.
-	 */
-	public function update_service( int $post_id, WP_Post $data ): void {
-		$this->insert_service( 'POST', $post_id, $data );
-	}
-
-	/**
-	 * Creates a service in the CNHSA Federation.
-	 *
-	 * @param int     $post_id The ID of the post to create.
-	 * @param WP_Post $data The data to create the service with.
-	 */
-	public function create_service( int $post_id, WP_Post $data ): void {
-		$this->insert_service( 'POST', $post_id, $data );
-	}
 
 	/**
 	 * Gets the CNHSA services ID for a post.
