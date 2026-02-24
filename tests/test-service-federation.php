@@ -8,6 +8,8 @@
 namespace ChoctawNation\CNHSA_Federation\Tests;
 
 use ChoctawNation\CNHSA_Federation\Transport\Http\Service_Publisher;
+use ChoctawNation\CNHSA_Federation\WP\ID_Resolver;
+use ChoctawNation\CNHSA_Federation\WP\Notifier;
 use WP_Error;
 use WP_UnitTestCase;
 
@@ -46,17 +48,23 @@ class Test_Service_Federation extends WP_UnitTestCase {
 	 * Test that the service federation class can be instantiated and has the expected methods.
 	 */
 	public function test_insert_service_updates_post_meta_on_success() {
-		$mock_service = self::factory()->post->create_and_get( array( 'post_type' => 'cnhsa_service' ) );
-		$publisher    = new Service_Publisher( 'local' );
+		$mock_service_post = self::factory()->post->create_and_get( array( 'post_type' => 'cnhsa_service' ) );
+		$mock_id_resolver  = $this->getMockBuilder( ID_Resolver::class )
+			->disableOriginalConstructor()
+			->getMock();
+		$mock_notifier     = $this->getMockBuilder( Notifier::class )
+			->disableOriginalConstructor()
+			->getMock();
+		$publisher         = new Service_Publisher( 'local', $mock_id_resolver, $mock_notifier );
 		// Mock the HTTP response that `wp_remote_post` will receive.
 		add_filter( 'pre_http_request', array( __CLASS__, 'fake_successful_http_request' ) );
 
-		$publisher->create_service( $mock_service->ID, $mock_service );
+		$publisher->publish_content( $mock_service_post );
 
 		// Remove the mock so it doesn't affect other tests.
 		remove_filter( 'pre_http_request', array( __CLASS__, 'fake_successful_http_request' ) );
 
-		$this->assertSame( 123, (int) get_post_meta( $mock_service->ID, 'cnhsa_services_id', true ) );
+		$this->assertSame( 123, (int) get_post_meta( $mock_service_post->ID, 'cnhsa_services_id', true ) );
 	}
 
 	/**
@@ -78,8 +86,14 @@ class Test_Service_Federation extends WP_UnitTestCase {
 	 * Test that the service federation class sends an email on failure.
 	 */
 	public function test_insert_service_sends_mail_on_failure() {
-		$mock_service = self::factory()->post->create_and_get( array( 'post_type' => 'cnhsa_service' ) );
-		$publisher    = new Service_Publisher( 'local' );
+		$mock_service_post = self::factory()->post->create_and_get( array( 'post_type' => 'cnhsa_service' ) );
+		$mock_id_resolver  = $this->getMockBuilder( ID_Resolver::class )
+			->disableOriginalConstructor()
+			->getMock();
+		$mock_notifier     = $this->getMockBuilder( Notifier::class )
+			->disableOriginalConstructor()
+			->getMock();
+		$publisher         = new Service_Publisher( 'local', $mock_id_resolver, $mock_notifier );
 		// Mock the HTTP response that `wp_remote_post` will receive.
 		add_filter( 'pre_http_request', array( __CLASS__, 'fake_failed_http_request' ) );
 
@@ -92,7 +106,7 @@ class Test_Service_Federation extends WP_UnitTestCase {
 			}
 		);
 
-		$publisher->create_service( $mock_service->ID, $mock_service );
+		$publisher->publish_content( $mock_service_post );
 
 		// Remove the mock so it doesn't affect other tests.
 		remove_all_filters( 'pre_http_request' );

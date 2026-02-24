@@ -16,84 +16,18 @@ use WP_Post;
  * Manages the data operations for the CNHSA Federation.
  */
 class Service_Publisher extends Abstract_Publisher {
-	/**
-	 * Updates a service in the CNHSA Federation.
-	 *
-	 * @param int     $post_id The ID of the post to update.
-	 * @param WP_Post $data The data to update the service with.
-	 */
-	public function update_service( int $post_id, WP_Post $data ): void {
-		$this->insert_service( 'POST', $post_id, $data );
+	public function get_cnhsa_id( WP_Post $post ): int {
+		return $this->id_resolver->find_cnhsa_id( 'services', $post );
 	}
 
-	/**
-	 * Creates a service in the CNHSA Federation.
-	 *
-	 * @param int     $post_id The ID of the post to create.
-	 * @param WP_Post $data The data to create the service with.
-	 */
-	public function create_service( int $post_id, WP_Post $data ): void {
-		$this->insert_service( 'POST', $post_id, $data );
-	}
-
-	/**
-	 * Gets the CNHSA services ID for a post.
-	 *
-	 * @param WP_Post $post The post object.
-	 * @return int The CNHSA services ID, or 0 if not found.
-	 */
-	public function get_cnhsa_services_id( WP_Post $post ): int {
-		$cnhsa_services_id = get_post_meta( $post->ID, 'cnhsa_services_id', true );
-		if ( empty( $cnhsa_services_id ) ) {
-			$cnhsa_services_id = $this->find_cnhsa_services_id( $post );
-			if ( 0 !== $cnhsa_services_id ) {
-				update_post_meta( $post->ID, 'cnhsa_services_id', $cnhsa_services_id );
-			}
-		}
-		return (int) $cnhsa_services_id;
-	}
-
-	/**
-	 * Finds the CNHSA services ID for a post by title.
-	 *
-	 * @param WP_Post $post The post object.
-	 * @return int The CNHSA services ID, or 0 if not found.
-	 */
-	private function find_cnhsa_services_id( WP_Post $post ): int {
-		$response = wp_remote_get(
-			"{$this->base_url}/service?title={$post->post_name}",
-			array(
-				'headers' => array(
-					'Authorization' => 'Basic ' . $this->get_auth(),
-				),
-			)
-		);
-		if ( is_wp_error( $response ) || 200 !== wp_remote_retrieve_response_code( $response ) ) {
-			error_log( 'Error fetching CNHSA service ID: ' . ( is_wp_error( $response ) ? $response->get_error_message() : 'Invalid response code' ) ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
-			return 0;
-		}
-		$body = wp_remote_retrieve_body( $response );
-		$data = json_decode( $body, true );
-		if ( empty( $data ) || ! is_array( $data ) || ! isset( $data['data'] ) ) {
-			return 0;
-		}
-		return (int) $data['data']['id'];
-	}
-
-	/**
-	 * Creates or updates a service.
-	 *
-	 * @param 'POST'|'PUT' $method The HTTP method to use ('POST' for create, 'PUT' for update).
-	 * @param int          $post_id The ID of the post to create or update.
-	 * @param WP_Post      $data The data to create or update the service with.
-	 */
-	private function insert_service( string $method, int $post_id, WP_Post $data ): void {
+	public function publish_content( WP_Post $post ): void {
+		$post_id       = $this->get_cnhsa_id( $post );
 		$url           = $post_id ? "{$this->base_url}/service/{$post_id}" : "{$this->base_url}/service";
 		$response      = wp_remote_post(
 			$url,
 			array(
-				'method'  => $method,
-				'body'    => $this->prepare_data( $data ),
+				'method'  => 'POST',
+				'body'    => $this->prepare_data( $post ),
 				'headers' => array(
 					'Content-Type'  => 'application/json',
 					'Authorization' => 'Basic ' . $this->get_auth(),
@@ -115,9 +49,10 @@ class Service_Publisher extends Abstract_Publisher {
 		}
 		$body = json_decode( wp_remote_retrieve_body( $response ), true );
 		if ( isset( $body['data']['id'] ) ) {
-			update_post_meta( $data->ID, 'cnhsa_services_id', (int) $body['data']['id'] );
+			update_post_meta( $post->ID, 'cnhsa_services_id', (int) $body['data']['id'] );
 		}
 	}
+
 
 	/**
 	 * Prepares REST Data for the CNHSA Federation API.

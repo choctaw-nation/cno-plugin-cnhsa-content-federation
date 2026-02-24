@@ -38,11 +38,9 @@ class Scheduler {
 		$this->cron_keys = array(
 			'services'  => array(
 				'update' => 'cnhsa_federation_update_services',
-				'create' => 'cnhsa_federation_create_services',
 			),
 			'locations' => array(
 				'update' => 'cnhsa_federation_update_health_location',
-				'create' => 'cnhsa_federation_create_health_location',
 			),
 		);
 		$this->notifier  = $notifier;
@@ -60,12 +58,7 @@ class Scheduler {
 		if ( $this->should_skip( $post, $update ) ) {
 			return null;
 		}
-		if ( false === $update ) { // new service post, won't exist on CNHSA, so schedule create.
-			return $this->schedule_single_event( $this->cron_keys['services']['create'], array( 0, $post ) );
-		}
-		// $cnhsa_services_id = $this->model->get_cnhsa_services_id( $post );
-		$hook = $this->cron_keys['services']['update'];
-		return $this->schedule_single_event( $hook, array( 0, $post ) );
+		return $this->schedule_single_event( $this->cron_keys['services']['update'], array( $post ) );
 	}
 
 	/**
@@ -79,9 +72,7 @@ class Scheduler {
 		if ( $this->should_skip( $post, $update ) ) {
 			return null;
 		}
-		// $cnhsa_locations_id = $this->model->get_cnhsa_locations_id( $post );
-		// $hook               = 0 === $cnhsa_locations_id ? $this->cron_keys['locations']['create'] : $this->cron_keys['locations']['update'];
-		return $this->schedule_single_event( $this->cron_keys['locations']['update'], array( 0, $post ) );
+		return $this->schedule_single_event( $this->cron_keys['locations']['update'], array( $post ) );
 	}
 
 	/**

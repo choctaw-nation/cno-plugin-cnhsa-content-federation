@@ -75,18 +75,17 @@ class Cron_Handler {
 	private function wire_cron_hook_callbacks() {
 		$wiring = array(
 			'services'  => array(
-				'update' => 'update_service',
-				'create' => 'create_service',
+				'update' => 'publish_content',
 			),
 			'locations' => array(
-				'update' => 'update_health_location',
+				'update' => 'publish_content',
 			),
 		);
 		foreach ( $wiring as $post_type => $actions ) {
 			foreach ( $actions as $action => $callback ) {
 				$hook      = $this->scheduler->cron_keys[ $post_type ][ $action ];
 				$publisher = $post_type . '_publisher';
-				add_action( $hook, array( $this->$publisher, $callback ), 10, 2 );
+				add_action( $hook, array( $this->$publisher, $callback ) );
 			}
 		}
 	}

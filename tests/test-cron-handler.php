@@ -77,10 +77,11 @@ class Test_Cron_Handler extends WP_UnitTestCase {
 		->getMock();
 		$this->location_publisher = $this->getMockBuilder( Location_Publisher::class )
 		->disableOriginalConstructor()
+		->onlyMethods( array( 'publish_content' ) )
 		->getMock();
 		$this->service_publisher  = $this->getMockBuilder( Service_Publisher::class )
 		->disableOriginalConstructor()
-		->onlyMethods( array( 'update_service', 'create_service' ) )
+		->onlyMethods( array( 'publish_content' ) )
 		->getMock();
 		$this->cron_handler       = new Cron_Handler( $this->scheduler, $this->service_publisher, $this->location_publisher );
 	}
@@ -113,13 +114,11 @@ class Test_Cron_Handler extends WP_UnitTestCase {
 	 *
 	 * @dataProvider data_save_post_hooks_and_callbacks
 	 * @param string $method The name of the Scheduler method expected to be called.
-	 * @param string $hook The name of the hook to trigger.
 	 */
-	public function test_save_post_hook_fires_correct_cron( $method, $hook ) {
+	public function test_save_post_hook_fires_correct_cron( $method ) {
 		$this->cron_handler->wire_callbacks();
 		$this->scheduler->expects( $this->once() )
 		->method( $method );
-
 		$post_types = array( 'services', 'location' );
 		foreach ( $post_types as $post_type ) {
 			self::factory()->post->create( array( 'post_type' => $post_type ) );
@@ -134,8 +133,8 @@ class Test_Cron_Handler extends WP_UnitTestCase {
 	 */
 	public function data_save_post_hooks_and_callbacks() {
 		return array(
-			'services update' => array( 'schedule_services_update', 'save_post_services' ),
-			'location update' => array( 'schedule_locations_update', 'save_post_location' ),
+			'services update' => array( 'schedule_services_update' ),
+			'location update' => array( 'schedule_locations_update' ),
 		);
 	}
 
@@ -158,9 +157,9 @@ class Test_Cron_Handler extends WP_UnitTestCase {
 			)
 		);
 		$this->service_publisher->expects( $this->once() )
-		->method( 'create_service' );
+		->method( 'publish_content' );
 		$post = self::factory()->post->create_and_get( array( 'post_type' => 'services' ) );
-		do_action( $this->scheduler->cron_keys['services']['create'], $post->ID, $post );
+		do_action( $this->scheduler->cron_keys['services']['update'], $post );
 		// Tear down credentials.
 		update_option(
 			'cnhsa_federation_options',
