@@ -23,17 +23,19 @@ class Scheduler {
 	public array $cron_keys;
 
 	/**
-	 * Notification emails for error reporting.
+	 * Notifier instance for sending notifications.
 	 *
-	 * @var string[] $notification_emails
+	 * @var Notifier $notifier
 	 */
-	private array $notification_emails;
+	public Notifier $notifier;
 
 	/**
 	 * Constructor
+	 *
+	 * @param Notifier $notifier The notifier instance to use for sending notifications.
 	 */
-	public function __construct() {
-		$this->cron_keys           = array(
+	public function __construct( Notifier $notifier ) {
+		$this->cron_keys = array(
 			'services'  => array(
 				'update' => 'cnhsa_federation_update_services',
 				'create' => 'cnhsa_federation_create_services',
@@ -43,7 +45,7 @@ class Scheduler {
 				'create' => 'cnhsa_federation_create_health_location',
 			),
 		);
-		$this->notification_emails = array_unique( array( get_option( 'admin_email' ), 'kroelke@choctawnation.com', 'bperkins@choctawnation.com' ), SORT_STRING );
+		$this->notifier  = $notifier;
 	}
 
 	/**

@@ -9,6 +9,8 @@ namespace ChoctawNation\CNHSA_Federation;
 
 use ChoctawNation\CNHSA_Federation\WP\AdminScreen\Admin_Screen;
 use ChoctawNation\CNHSA_Federation\WP\Cron_Handler;
+use ChoctawNation\CNHSA_Federation\WP\Notifier;
+use ChoctawNation\CNHSA_Federation\WP\Scheduler;
 
 /**
  * Class Plugin_Loader
@@ -83,31 +85,40 @@ class Plugin_Loader {
 	public function load_plugin() {
 		add_action( 'rest_api_init', array( $this, 'load_required_rest_routes' ) );
 		$this->load_admin_screen();
-		$scheduler          = new WP\Scheduler();
-		$environment        = wp_get_environment_type();
-		$service_publisher  = new Transport\Http\Service_Publisher( $environment );
-		$location_publisher = new Transport\Http\Location_Publisher( $environment );
-		$cron               = new Cron_Handler( $scheduler, $service_publisher, $location_publisher );
-		$cron->wire_callbacks();
-	}
-
-	/**
-	 * Load Admin Screen Interface
-	 */
-	private function load_admin_screen() {
-		$admin_screen = new Admin_Screen();
-		add_action( 'admin_menu', array( $admin_screen, 'register_menus' ) );
-		add_action( 'admin_init', array( $admin_screen, 'register_settings' ) );
-		add_action( 'admin_enqueue_scripts', array( $admin_screen, 'load_required_assets' ) );
+		$this->wire_cron_hook_callbacks();
 	}
 
 	/**
 	 * Register rest routes immediately so they're available in the admin screen JS fetch calls
 	 */
 	public function load_required_rest_routes() {
-		$wp_admin_rest_router = new WP\AdminScreen\Rest_Router();
+		$wp_admin_rest_router = new WP\AdminScreen\Rest_Router( self::OPTION_KEY, self::TRANSIENT_KEY );
 		$cnhsa_rest_router    = new Transport\Rest_Router();
 		$wp_admin_rest_router->register_routes();
 		$cnhsa_rest_router->register_routes();
+	}
+
+	/**
+	 * Load Admin Screen Interface
+	 */
+	private function load_admin_screen() {
+		$admin_screen = new Admin_Screen( self::OPTION_KEY, self::TRANSIENT_KEY );
+		add_action( 'admin_menu', array( $admin_screen, 'register_menus' ) );
+		add_action( 'admin_init', array( $admin_screen, 'register_settings' ) );
+		add_action( 'admin_enqueue_scripts', array( $admin_screen, 'load_required_assets' ) );
+	}
+
+	/**
+	 * Main plugin logic: wire up cron hook callbacks with their respective handlers and dependencies
+	 * Allows for async POSTing of data to federated sites on save of services and locations, powered by WP Cron and Transporters.
+	 */
+	private function wire_cron_hook_callbacks() {
+		$notifier           = new Notifier( array( 'kroelke@choctawnation.com', 'bperkins@choctawnation.com' ) );
+		$scheduler          = new Scheduler( $notifier );
+		$environment        = wp_get_environment_type();
+		$service_publisher  = new Transport\Http\Service_Publisher( $environment );
+		$location_publisher = new Transport\Http\Location_Publisher( $environment );
+		$cron               = new Cron_Handler( $scheduler, $service_publisher, $location_publisher );
+		$cron->wire_callbacks();
 	}
 }

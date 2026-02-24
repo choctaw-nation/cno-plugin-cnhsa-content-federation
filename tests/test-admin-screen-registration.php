@@ -16,20 +16,33 @@ use WP_UnitTestCase;
  */
 class Test_Admin_Screen extends WP_UnitTestCase {
 	/**
+	 * The option key for storing plugin settings in the database.
+	 *
+	 * @var string $option_key
+	 */
+	private const OPTION_KEY = 'cnhsa_federation_options';
+
+	/**
+	 * The transient key for storing the local URL in the database.
+	 *
+	 * @var string $transient_key
+	 */
+	private const TRANSIENT_KEY = 'cnhsa_federation_local_url';
+	/**
 	 * Clean up options and transients before each test to ensure a consistent environment.
 	 */
 	public function set_up(): void {
 		parent::set_up();
-		delete_transient( 'cnhsa_federation_local_url' );
-		delete_option( 'cnhsa_federation_options' );
+		delete_transient( self::TRANSIENT_KEY );
+		delete_option( self::OPTION_KEY );
 	}
 
 	/**
 	 * Clean up options and transients after each test to prevent side effects.
 	 */
 	public function tear_down(): void {
-		delete_transient( 'cnhsa_federation_local_url' );
-		delete_option( 'cnhsa_federation_options' );
+		delete_transient( self::TRANSIENT_KEY );
+		delete_option( self::OPTION_KEY );
 		parent::tear_down();
 	}
 
@@ -45,7 +58,7 @@ class Test_Admin_Screen extends WP_UnitTestCase {
 	 * @param string $expected_local_url The expected sanitized local URL stored in the transient.
 	 */
 	public function test_sanitize_options_filters_environments_and_credentials( $input, $expected_envs, $expected_username, $expected_app_password, $expected_local_url ) {
-		$screen = new Admin_Screen();
+		$screen = new Admin_Screen( self::OPTION_KEY, self::TRANSIENT_KEY );
 
 		$out = $screen->sanitize_options( $input );
 
@@ -55,7 +68,7 @@ class Test_Admin_Screen extends WP_UnitTestCase {
 		$this->assertEquals( $expected_app_password, $out['credentials'][ $expected_envs[0] ]['app_password'] );
 
 		// localUrl should be stored in the transient
-		$this->assertEquals( $expected_local_url, get_transient( 'cnhsa_federation_local_url' ) );
+		$this->assertEquals( $expected_local_url, get_transient( self::TRANSIENT_KEY ) );
 	}
 
 	/**
@@ -90,7 +103,7 @@ class Test_Admin_Screen extends WP_UnitTestCase {
 	 * @param array $expected_creds Associative array of expected credentials per environment.
 	 */
 	public function test_each_environment_can_have_different_credentials( $input, $expected_creds ) {
-		$screen = new Admin_Screen();
+		$screen = new Admin_Screen( self::OPTION_KEY, self::TRANSIENT_KEY );
 
 		$out = $screen->sanitize_options( $input );
 
@@ -141,8 +154,8 @@ class Test_Admin_Screen extends WP_UnitTestCase {
 	 */
 	public function test_field_local_cb_prefers_transient() {
 		$local = 'http://local.test';
-		set_transient( 'cnhsa_federation_local_url', $local, DAY_IN_SECONDS * 30 );
-		$screen = new Admin_Screen();
+		set_transient( self::TRANSIENT_KEY, $local, DAY_IN_SECONDS * 30 );
+		$screen = new Admin_Screen( self::OPTION_KEY, self::TRANSIENT_KEY );
 
 		ob_start();
 		$screen->field_local_cb();
@@ -161,9 +174,9 @@ class Test_Admin_Screen extends WP_UnitTestCase {
 	 * @param string $expected_pass The expected app password to be found in the output HTML.
 	 */
 	public function test_field_credentials_cb_outputs_saved_credentials( $opts, $expected_user, $expected_pass ) {
-		update_option( 'cnhsa_federation_options', $opts );
+		update_option( self::OPTION_KEY, $opts );
 
-		$screen = new Admin_Screen();
+		$screen = new Admin_Screen( self::OPTION_KEY, self::TRANSIENT_KEY );
 
 		ob_start();
 		$screen->field_credentials_cb();

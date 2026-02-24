@@ -68,8 +68,12 @@ class Test_Cron_Handler extends WP_UnitTestCase {
 	 */
 	public function set_up(): void {
 		parent::set_up();
+		$notifier                 = $this->getMockBuilder( \ChoctawNation\CNHSA_Federation\WP\Notifier::class )
+		->disableOriginalConstructor()
+		->getMock();
 		$this->scheduler          = $this->getMockBuilder( Scheduler::class )
 		->onlyMethods( array( 'schedule_services_update', 'schedule_locations_update' ) )
+		->setConstructorArgs( array( $notifier ) )
 		->getMock();
 		$this->location_publisher = $this->getMockBuilder( Location_Publisher::class )
 		->disableOriginalConstructor()

@@ -7,6 +7,7 @@
 
 namespace ChoctawNation\CNHSA_Federation\WP\AdminScreen;
 
+use Dom\Text;
 use WP_REST_Controller;
 use WP_REST_Server;
 use WP_Error;
@@ -22,6 +23,32 @@ if ( ! defined( 'ABSPATH' ) ) {
  * Registers REST routes for the plugin.
  */
 class Rest_Router extends WP_REST_Controller {
+	/**
+	 * Option key for storing plugin settings.
+	 *
+	 * @var string $option_key
+	 */
+	private readonly string $option_key;
+
+	/**
+	 * Transient key for storing local URL.
+	 *
+	 * @var string $transient_key
+	 */
+	private readonly string $transient_key;
+
+	/**
+	 * Constructor to initialize option and transient keys.
+	 *
+	 * @param string $option_key The option key for storing settings.
+	 * @param string $transient_key The transient key for storing local URL.
+	 */
+	public function __construct( string $option_key, string $transient_key ) {
+		$this->option_key    = $option_key;
+		$this->transient_key = $transient_key;
+		parent::__construct();
+	}
+
 	/**
 	 * Register routes.
 	 */
@@ -54,9 +81,9 @@ class Rest_Router extends WP_REST_Controller {
 	 * @return WP_REST_Response|WP_Error The response or error.
 	 */
 	public function get_settings() {
-		$opts = get_option( 'cnhsa_federation_options', array() );
+		$opts = get_option( $this->option_key, array() );
 		// Prefer transient-stored local URL (expires after 30 days), fall back to saved option for back-compat
-		$local = get_transient( 'cnhsa_federation_local_url' );
+		$local = get_transient( $this->transient_key );
 		if ( false !== $local ) {
 			$opts['localUrl'] = $local;
 		} elseif ( isset( $opts['localUrl'] ) ) {
@@ -110,13 +137,13 @@ class Rest_Router extends WP_REST_Controller {
 		// Local URL: store in transient for 30 days if provided (do not persist permanently)
 		if ( isset( $params['localUrl'] ) ) {
 			$local = esc_url_raw( $params['localUrl'] );
-			set_transient( 'cnhsa_federation_local_url', $local, DAY_IN_SECONDS * 30 );
+			set_transient( $this->transient_key, $local, DAY_IN_SECONDS * 30 );
 		}
 
-		update_option( 'cnhsa_federation_options', $output );
+		update_option( $this->option_key, $output );
 
 		// include transient value in response if set
-		$trans_local = get_transient( 'cnhsa_federation_local_url' );
+		$trans_local = get_transient( $this->transient_key );
 		if ( false !== $trans_local ) {
 			$output['localUrl'] = $trans_local;
 		}

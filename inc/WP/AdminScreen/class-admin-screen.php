@@ -18,6 +18,31 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 class Admin_Screen {
 	/**
+	 * Option key for storing plugin settings.
+	 *
+	 * @var string $option_key
+	 */
+	private readonly string $option_key;
+
+	/**
+	 * Transient key for storing local URL.
+	 *
+	 * @var string $transient_key
+	 */
+	private readonly string $transient_key;
+
+	/**
+	 * Constructor to initialize option and transient keys.
+	 *
+	 * @param string $option_key The option key for storing settings.
+	 * @param string $transient_key The transient key for storing local URL.
+	 */
+	public function __construct( string $option_key, string $transient_key ) {
+		$this->option_key    = $option_key;
+		$this->transient_key = $transient_key;
+	}
+
+	/**
 	 * Register admin menu and submenu pages.
 	 */
 	public function register_menus() {
@@ -153,7 +178,7 @@ class Admin_Screen {
 		// Local URL: store in a transient that expires after 30 days instead
 		if ( isset( $input['localUrl'] ) ) {
 			$local = esc_url_raw( $input['localUrl'] );
-			set_transient( 'cnhsa_federation_local_url', $local, DAY_IN_SECONDS * 30 );
+			set_transient( $this->transient_key, $local, DAY_IN_SECONDS * 30 );
 		}
 
 		// Credentials per environment
@@ -215,9 +240,9 @@ class Admin_Screen {
 	 */
 	public function field_local_cb() {
 		// Prefer transient-stored local URL (expires after 30 days), fall back to saved option for back-compat
-		$val = get_transient( 'cnhsa_federation_local_url' );
+		$val = get_transient( $this->transient_key );
 		if ( false === $val ) {
-			$opts = get_option( 'cnhsa_federation_options', array() );
+			$opts = get_option( $this->option_key, array() );
 			$val  = isset( $opts['localUrl'] ) ? $opts['localUrl'] : '';
 		}
 		printf( '<input type="text" name="cnhsa_federation_options[localUrl]" value="%s" class="regular-text" />', esc_attr( $val ) );
@@ -227,7 +252,7 @@ class Admin_Screen {
 	 * Callback for the username field.
 	 */
 	public function field_username_cb() {
-		$opts = get_option( 'cnhsa_federation_options', array() );
+		$opts = get_option( $this->option_key, array() );
 		$val  = isset( $opts['username'] ) ? $opts['username'] : '';
 		printf( '<input type="text" name="cnhsa_federation_options[username]" value="%s" class="regular-text" />', esc_attr( $val ) );
 	}
@@ -236,7 +261,7 @@ class Admin_Screen {
 	 * Callback for the application password field.
 	 */
 	public function field_app_password_cb() {
-		$opts = get_option( 'cnhsa_federation_options', array() );
+		$opts = get_option( $this->option_key, array() );
 		$val  = isset( $opts['app_password'] ) ? $opts['app_password'] : '';
 		printf( '<input type="text" name="cnhsa_federation_options[app_password]" value="%s" class="regular-text" />', esc_attr( $val ) );
 	}
@@ -245,7 +270,7 @@ class Admin_Screen {
 	 * Callback for the environments select (multi-select).
 	 */
 	public function field_environments_cb() {
-		$opts     = get_option( 'cnhsa_federation_options', array() );
+		$opts     = get_option( $this->option_key, array() );
 		$selected = isset( $opts['environments'] ) ? (array) $opts['environments'] : array();
 		$choices  = array(
 			'production'  => 'Production',
