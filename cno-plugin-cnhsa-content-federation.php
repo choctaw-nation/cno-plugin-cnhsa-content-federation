@@ -10,60 +10,20 @@
  * @package         CNHSA_Federation
  */
 
+use ChoctawNation\CNHSA_Federation\Plugin_Loader;
+
 if ( ! defined( 'ABSPATH' ) ) {
 	die;
 }
+require_once __DIR__ . '/vendor/autoload.php';
 
-// autoload all files in the inc directory
-foreach ( glob( __DIR__ . '/inc/*.php' ) as $file ) {
-	require_once $file;
-}
+$cnhsa_federation_plugin = new Plugin_Loader();
 
-/**
- * Activation callback: initialize default options.
- */
-function cnhsa_federation_activate() {
-	$defaults = array(
-		// selected environments to federate to
-		'environments' => array(),
-		// credentials per environment
-		'credentials'  => array(
-			'production'  => array(
-				'username'     => '',
-				'app_password' => '',
-			),
-			'staging'     => array(
-				'username'     => '',
-				'app_password' => '',
-			),
-			'development' => array(
-				'username'     => '',
-				'app_password' => '',
-			),
-			'local'       => array(
-				'username'     => '',
-				'app_password' => '',
-			),
-		),
-		'instructions' => "Create an application password in your profile and paste it here.\nVisit Users → Profile → Application Passwords.",
-	);
+// Plugin Lifecycle Hooks
+register_activation_hook( __FILE__, array( $cnhsa_federation_plugin, 'activate' ) );
+register_deactivation_hook( __FILE__, array( $cnhsa_federation_plugin, 'deactivate' ) );
+// Static method for uninstall since the plugin can't rely on instance methods.
+register_uninstall_hook( __FILE__, array( 'ChoctawNation\CNHSA_Federation\Plugin_Loader', 'uninstall' ) );
 
-	if ( false === get_option( 'cnhsa_federation_options', false ) ) {
-		add_option( 'cnhsa_federation_options', $defaults );
-	} else {
-		$opts = get_option( 'cnhsa_federation_options', array() );
-		$opts = wp_parse_args( $opts, $defaults );
-		update_option( 'cnhsa_federation_options', $opts );
-	}
-	flush_rewrite_rules();
-}
-
-/**
- * Deactivation callback: currently no destructive actions.
- */
-function cnhsa_federation_deactivate() {
-	// Intentionally left blank. Use uninstall.php to remove data if desired.
-}
-
-register_activation_hook( __FILE__, 'cnhsa_federation_activate' );
-register_deactivation_hook( __FILE__, 'cnhsa_federation_deactivate' );
+// Load the Plugin
+add_action( 'plugins_loaded', array( $cnhsa_federation_plugin, 'load_plugin' ) );

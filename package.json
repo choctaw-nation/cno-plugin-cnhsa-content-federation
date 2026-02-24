@@ -12,7 +12,8 @@
 		"cno-plugin-cnhsa-content-federation.php",
 		"README.md",
 		"CHANGELOG.md",
-		"build/"
+		"build/",
+		"vendor/"
 	],
 	"scripts": {
 		"build": "wp-scripts build",

@@ -33,6 +33,33 @@ function _manually_load_plugin() {
 }
 
 tests_add_filter( 'muplugins_loaded', '_manually_load_plugin' );
+tests_add_filter( 'muplugins_loaded', '_manually_load_acf' );
+
+/**
+ * Manually load the ACF plugin for testing.
+ */
+function _manually_load_acf() {
+	global $_tests_dir;
+	if ( ! defined( 'WP_PLUGIN_DIR' ) ) {
+		define( 'WP_PLUGIN_DIR', dirname( $_tests_dir, 1 ) . '/wordpress/wp-content/plugins' );
+	}
+	// Add ACF
+	$acf_path = dirname( __DIR__ ) . '/vendor/advanced-custom-fields';
+
+	// turn off the ACF admin UI to speed tests and reduce noise
+	if ( ! defined( 'ACF_LITE' ) ) {
+		define( 'ACF_LITE', true );
+	}
+
+	if ( file_exists( $acf_path . '/acf.php' ) ) {
+		require_once $acf_path . '/acf.php';
+	} elseif ( file_exists( WP_PLUGIN_DIR . '/advanced-custom-fields/acf.php' ) ) {
+		require_once WP_PLUGIN_DIR . '/advanced-custom-fields/acf.php';
+	} else {
+		// Optional: throw or log so CI fails loudly
+		fwrite( STDERR, "ACF plugin not found at {$acf_path}/acf.php or " . WP_PLUGIN_DIR . "/advanced-custom-fields/acf.php\n" );
+	}
+}
 
 // Start up the WP testing environment.
 require "{$_tests_dir}/includes/bootstrap.php";

@@ -1,0 +1,115 @@
+<?php
+/**
+ * Service Federation Tests
+ *
+ * @package ChoctawNation\CNHSA_Federation\Tests
+ */
+
+namespace ChoctawNation\CNHSA_Federation\Tests;
+
+use ChoctawNation\CNHSA_Federation\Transport\Http\Service_Publisher;
+use WP_Error;
+use WP_UnitTestCase;
+
+/**
+ * Class Test_Service_Federation
+ */
+class Test_Service_Federation extends WP_UnitTestCase {
+	/**
+	 * Set up test configs
+	 */
+	public static function set_up_before_class(): void {
+		parent::set_up_before_class();
+		update_option(
+			'cnhsa_federation_options',
+			array(
+				'environments' => array( 'local' ),
+				'credentials'  => array(
+					'local' => array(
+						'username'     => 'test-user',
+						'app_password' => 'test-password',
+					),
+				),
+			)
+		);
+	}
+
+	/**
+	 * Clean up options after tests
+	 */
+	public static function tear_down_after_class(): void {
+		delete_option( 'cnhsa_federation_options' );
+		parent::tear_down_after_class();
+	}
+
+	/**
+	 * Test that the service federation class can be instantiated and has the expected methods.
+	 */
+	public function test_insert_service_updates_post_meta_on_success() {
+		$mock_service = self::factory()->post->create_and_get( array( 'post_type' => 'cnhsa_service' ) );
+		$publisher    = new Service_Publisher( 'local' );
+		// Mock the HTTP response that `wp_remote_post` will receive.
+		add_filter( 'pre_http_request', array( __CLASS__, 'fake_successful_http_request' ) );
+
+		$publisher->create_service( $mock_service->ID, $mock_service );
+
+		// Remove the mock so it doesn't affect other tests.
+		remove_filter( 'pre_http_request', array( __CLASS__, 'fake_successful_http_request' ) );
+
+		$this->assertSame( 123, (int) get_post_meta( $mock_service->ID, 'cnhsa_services_id', true ) );
+	}
+
+	/**
+	 * Provide a fake HTTP response for tests.
+	 *
+	 * @return array The fake response to return to WP HTTP functions.
+	 */
+	public static function fake_successful_http_request(): array {
+		return array(
+			'headers'  => array(),
+			'body'     => wp_json_encode( array( 'data' => array( 'id' => 123 ) ) ),
+			'response' => array( 'code' => 201 ),
+			'cookies'  => array(),
+			'filename' => null,
+		);
+	}
+
+	/**
+	 * Test that the service federation class sends an email on failure.
+	 */
+	public function test_insert_service_sends_mail_on_failure() {
+		$mock_service = self::factory()->post->create_and_get( array( 'post_type' => 'cnhsa_service' ) );
+		$publisher    = new Service_Publisher( 'local' );
+		// Mock the HTTP response that `wp_remote_post` will receive.
+		add_filter( 'pre_http_request', array( __CLASS__, 'fake_failed_http_request' ) );
+
+		$email_did_trigger = false;
+		add_filter(
+			'pre_wp_mail',
+			function () use ( &$email_did_trigger ) {
+				$email_did_trigger = true;
+				return false; // prevent email from sending
+			}
+		);
+
+		$publisher->create_service( $mock_service->ID, $mock_service );
+
+		// Remove the mock so it doesn't affect other tests.
+		remove_all_filters( 'pre_http_request' );
+		remove_all_filters( 'pre_wp_mail' );
+		$this->assertTrue( $email_did_trigger );
+	}
+
+	/**
+	 * Provide a fake failed HTTP response for tests.
+	 */
+	public static function fake_failed_http_request(): array {
+		return array(
+			'headers'  => array(),
+			'body'     => wp_json_encode( array( 'message' => 'Error occurred' ) ),
+			'response' => array( 'code' => 500 ),
+			'cookies'  => array(),
+			'filename' => null,
+		);
+	}
+}

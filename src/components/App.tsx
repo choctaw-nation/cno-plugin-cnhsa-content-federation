@@ -26,7 +26,7 @@ export default function App( { restUrl, nonce }: Props ) {
 		errors,
 		setErrors,
 	} = useOptions( restUrl );
-	console.log( options );
+
 	if ( errors ) {
 		return <Notice status="error">{ errors }</Notice>;
 	}
@@ -118,6 +118,8 @@ export default function App( { restUrl, nonce }: Props ) {
 						) && (
 							<div style={ { marginTop: '1rem' } }>
 								<TextControl
+									__next40pxDefaultSize
+									__nextHasNoMarginBottom
 									type="text"
 									label="Local URL"
 									help="This value expires after 30 days."
@@ -153,7 +155,11 @@ export default function App( { restUrl, nonce }: Props ) {
 					</Panel>
 				) }
 			</Flex>
-			<Button loading={ saving } type="submit" variant="primary">
+			<Button
+				loading={ saving ? 'true' : 'false' }
+				type="submit"
+				variant="primary"
+			>
 				{ saving ? 'Saving…' : 'Save Settings' }
 			</Button>
 		</form>

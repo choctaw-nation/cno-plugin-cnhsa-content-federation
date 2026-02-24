@@ -1,8 +1,14 @@
 <?xml version="1.0"?>
 <phpunit bootstrap="tests/bootstrap.php" backupGlobals="false" colors="true" convertErrorsToExceptions="true" convertWarningsToExceptions="true" convertNoticesToExceptions="true" convertDeprecationsToExceptions="true" verbose="true">
 	<testsuites>
-		<testsuite name="cnhsa-api">
-			<directory prefix="test-" suffix=".php">tests/</directory>
+		<testsuite name="admin-screen">
+			<file>tests/test-admin-screen-registration.php</file>
+		</testsuite>
+		<testsuite name="service-federation">
+			<file>tests/test-service-federation.php</file>
+		</testsuite>
+		<testsuite name="cron-handler">
+			<file>tests/test-cron-handler.php</file>
 		</testsuite>
 	</testsuites>
 	<coverage cacheDirectory=".phpunit.cache">

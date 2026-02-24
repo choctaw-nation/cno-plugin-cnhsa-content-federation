@@ -16,8 +16,8 @@
 		"isolatedModules": true,
 		"jsx": "preserve",
 		"baseUrl": "src/",
-		"typeRoots": [ "./node_modules/@types", "src/js/**/types" ]
+		"typeRoots": [ "./node_modules/@types", "src/**/types" ]
 	},
-	"include": [ "src/js/**/*" ],
+	"include": [ "src/**/*" ],
 	"exclude": [ "node_modules" ]
 }

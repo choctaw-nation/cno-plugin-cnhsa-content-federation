@@ -7,7 +7,7 @@
  * @subpackage CNHSA_Federation
  */
 
-namespace ChoctawNation\CNHSA_Federation;
+namespace ChoctawNation\CNHSA_Federation\Transport;
 
 use WP_REST_Controller;
 use WP_REST_Request;

@@ -5,7 +5,7 @@
  * @package CNHSA_Federation
  */
 
-namespace ChoctawNation\CNHSA_Federation\WP_Admin_Screen;
+namespace ChoctawNation\CNHSA_Federation\WP\AdminScreen;
 
 use WP_REST_Controller;
 use WP_REST_Server;
@@ -51,10 +51,9 @@ class Rest_Router extends WP_REST_Controller {
 	/**
 	 * GET callback.
 	 *
-	 * @param WP_REST_Request $request The REST request.
 	 * @return WP_REST_Response|WP_Error The response or error.
 	 */
-	public function get_settings( WP_REST_Request $request ) {
+	public function get_settings() {
 		$opts = get_option( 'cnhsa_federation_options', array() );
 		// Prefer transient-stored local URL (expires after 30 days), fall back to saved option for back-compat
 		$local = get_transient( 'cnhsa_federation_local_url' );
@@ -105,18 +104,6 @@ class Rest_Router extends WP_REST_Controller {
 					'app_password' => isset( $creds['app_password'] ) ? sanitize_text_field( $creds['app_password'] ) : '',
 				);
 			}
-		} else {
-			// Back-compat: if top-level username/app_password provided, apply to selected envs
-			$global_user = isset( $params['username'] ) ? sanitize_text_field( $params['username'] ) : '';
-			$global_pass = isset( $params['app_password'] ) ? sanitize_text_field( $params['app_password'] ) : '';
-			if ( $global_user || $global_pass ) {
-				foreach ( $selected as $env ) {
-					$creds_out[ $env ] = array(
-						'username'     => $global_user,
-						'app_password' => $global_pass,
-					);
-				}
-			}
 		}
 		$output['credentials'] = $creds_out;
 
@@ -133,8 +120,6 @@ class Rest_Router extends WP_REST_Controller {
 		if ( false !== $trans_local ) {
 			$output['localUrl'] = $trans_local;
 		}
-
-		return rest_ensure_response( $output );
 
 		return rest_ensure_response( $output );
 	}

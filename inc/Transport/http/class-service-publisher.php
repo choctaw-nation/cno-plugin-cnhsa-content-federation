@@ -1,22 +1,21 @@
 <?php
 /**
- * Class: Model
+ * Class: Service Publisher
  * Handles data operations between the CNO & CNHSA themes.
  *
  * @package ChoctawNation
  * @subpackage CNHSA_Federation
  */
 
-namespace ChoctawNation\CNHSA_Federation;
+namespace ChoctawNation\CNHSA_Federation\Transport\Http;
 
 use WP_Post;
 
 /**
- * Class Model
- *
+ * Class Service_Publisher
  * Manages the data operations for the CNHSA Federation.
  */
-class Model {
+class Service_Publisher extends Abstract_Publisher {
 	/**
 	 * Updates a service in the CNHSA Federation.
 	 *
@@ -52,16 +51,6 @@ class Model {
 			}
 		}
 		return (int) $cnhsa_services_id;
-	}
-
-	/**
-	 * Update health location in the CNHSA Federation.
-	 *
-	 * @param int     $post_id The ID of the post to update.
-	 * @param WP_Post $data The data to update the health location with.
-	 */
-	public function update_health_location( int $post_id, WP_Post $data ): void {
-		// This method can be implemented similarly to update_service, but targeting the health location endpoint.
 	}
 
 	/**

@@ -5,7 +5,7 @@
  * @package CNHSA_Federation
  */
 
-namespace ChoctawNation\CNHSA_Federation\WP_Admin_Screen;
+namespace ChoctawNation\CNHSA_Federation\WP\AdminScreen;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -95,6 +95,32 @@ class Admin_Screen {
 
 		add_settings_field( 'environments', 'Environments', array( $this, 'field_environments_cb' ), 'cnhsa-federation-settings', 'cnhsa_federation_targets' );
 		add_settings_field( 'local', 'Local Environment URL', array( $this, 'field_local_cb' ), 'cnhsa-federation-settings', 'cnhsa_federation_targets' );
+	}
+
+	/**
+	 * Enqueue admin screen assets, but only on our plugin's settings page.
+	 *
+	 * @param string $hook_suffix The current admin page hook suffix.
+	 */
+	public function load_required_assets( string $hook_suffix ) {
+		if ( 'cnhsa-federation_page_cnhsa-federation-settings' !== $hook_suffix ) {
+			return;
+		}
+		$asset_file         = require_once dirname( __DIR__, 3 ) . '/build/index.asset.php';
+		$plugin_assets_path = dirname( __DIR__, 2 );
+		wp_enqueue_script(
+			'cnhsa-federation-admin',
+			plugin_dir_url( $plugin_assets_path ) . 'build/index.js',
+			$asset_file['dependencies'],
+			$asset_file['version'],
+			array( 'strategy' => 'defer' )
+		);
+		wp_enqueue_style(
+			'cnhsa-federation-admin',
+			plugin_dir_url( $plugin_assets_path ) . 'build/index.css',
+			array(),
+			$asset_file['version']
+		);
 	}
 
 	/**
@@ -192,7 +218,7 @@ class Admin_Screen {
 		$val = get_transient( 'cnhsa_federation_local_url' );
 		if ( false === $val ) {
 			$opts = get_option( 'cnhsa_federation_options', array() );
-			$val = isset( $opts['localUrl'] ) ? $opts['localUrl'] : '';
+			$val  = isset( $opts['localUrl'] ) ? $opts['localUrl'] : '';
 		}
 		printf( '<input type="text" name="cnhsa_federation_options[localUrl]" value="%s" class="regular-text" />', esc_attr( $val ) );
 	}
@@ -249,7 +275,7 @@ class Admin_Screen {
 	 */
 	public function render_settings_page() {
 		ob_start();
-		require_once __DIR__ . '/settings-page.php';
+		require_once __DIR__ . '/settings-page-render-callback.php';
 		echo ob_get_clean();
 	}
 }
