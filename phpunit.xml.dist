@@ -13,6 +13,9 @@
 		<testsuite name="notifier">
 			<file>tests/test-notifier.php</file>
 		</testsuite>
+		<testsuite name="scheduler">
+			<file>tests/test-scheduler.php</file>
+		</testsuite>
 	</testsuites>
 	<coverage cacheDirectory=".phpunit.cache">
 		<include>
