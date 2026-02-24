@@ -86,7 +86,7 @@ class Cron_Handler {
 			foreach ( $actions as $action => $callback ) {
 				$hook      = $this->scheduler->cron_keys[ $post_type ][ $action ];
 				$publisher = $post_type . '_publisher';
-				add_action( $hook, array( $this->$publisher, $callback ) );
+				add_action( $hook, array( $this->$publisher, $callback ), 10, 2 );
 			}
 		}
 	}

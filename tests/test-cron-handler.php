@@ -138,4 +138,33 @@ class Test_Cron_Handler extends WP_UnitTestCase {
 			'location update' => array( 'schedule_locations_update', 'save_post_location' ),
 		);
 	}
+
+	/**
+	 * Test that the service publisher's create_service method is called when the corresponding cron hook is triggered.
+	 */
+	public function test_service_publisher_methods_fire_on_cron_trigger() {
+		$this->cron_handler->wire_callbacks();
+		// Set up credentials so that publisher methods are called.
+		update_option(
+			'cnhsa_federation_options',
+			array(
+				'environments' => array( 'local' ),
+				'credentials'  => array(
+					'local' => array(
+						'username'     => 'test-user',
+						'app_password' => 'test-password',
+					),
+				),
+			)
+		);
+		$this->service_publisher->expects( $this->once() )
+		->method( 'create_service' );
+		$post = self::factory()->post->create_and_get( array( 'post_type' => 'services' ) );
+		do_action( $this->scheduler->cron_keys['services']['create'], $post->ID, $post );
+		// Tear down credentials.
+		update_option(
+			'cnhsa_federation_options',
+			array()
+		);
+	}
 }
