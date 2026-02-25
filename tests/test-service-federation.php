@@ -10,7 +10,6 @@ namespace ChoctawNation\CNHSA_Federation\Tests;
 use ChoctawNation\CNHSA_Federation\Transport\Http\Service_Publisher;
 use ChoctawNation\CNHSA_Federation\WP\ID_Resolver;
 use ChoctawNation\CNHSA_Federation\WP\Notifier;
-use WP_Error;
 use WP_UnitTestCase;
 
 /**
@@ -57,29 +56,14 @@ class Test_Service_Federation extends WP_UnitTestCase {
 			->getMock();
 		$publisher         = new Service_Publisher( 'local', $mock_id_resolver, $mock_notifier );
 		// Mock the HTTP response that `wp_remote_post` will receive.
-		add_filter( 'pre_http_request', array( __CLASS__, 'fake_successful_http_request' ) );
+		HTTP_Requests::successful_request( array( 'data' => array( 'id' => 123 ) ), 201 );
 
 		$publisher->publish_content( $mock_service_post );
 
 		// Remove the mock so it doesn't affect other tests.
-		remove_filter( 'pre_http_request', array( __CLASS__, 'fake_successful_http_request' ) );
+		HTTP_Requests::clear_filters();
 
 		$this->assertSame( 123, (int) get_post_meta( $mock_service_post->ID, 'cnhsa_services_id', true ) );
-	}
-
-	/**
-	 * Provide a fake HTTP response for tests.
-	 *
-	 * @return array The fake response to return to WP HTTP functions.
-	 */
-	public static function fake_successful_http_request(): array {
-		return array(
-			'headers'  => array(),
-			'body'     => wp_json_encode( array( 'data' => array( 'id' => 123 ) ) ),
-			'response' => array( 'code' => 201 ),
-			'cookies'  => array(),
-			'filename' => null,
-		);
 	}
 
 	/**
@@ -95,7 +79,7 @@ class Test_Service_Federation extends WP_UnitTestCase {
 			->getMock();
 		$publisher         = new Service_Publisher( 'local', $mock_id_resolver, $mock_notifier );
 		// Mock the HTTP response that `wp_remote_post` will receive.
-		add_filter( 'pre_http_request', array( __CLASS__, 'fake_failed_http_request' ) );
+		HTTP_Requests::failed_request();
 
 		$email_did_trigger = false;
 		add_filter(
@@ -109,21 +93,8 @@ class Test_Service_Federation extends WP_UnitTestCase {
 		$publisher->publish_content( $mock_service_post );
 
 		// Remove the mock so it doesn't affect other tests.
-		remove_all_filters( 'pre_http_request' );
+		HTTP_Requests::clear_filters();
 		remove_all_filters( 'pre_wp_mail' );
 		$this->assertTrue( $email_did_trigger );
-	}
-
-	/**
-	 * Provide a fake failed HTTP response for tests.
-	 */
-	public static function fake_failed_http_request(): array {
-		return array(
-			'headers'  => array(),
-			'body'     => wp_json_encode( array( 'message' => 'Error occurred' ) ),
-			'response' => array( 'code' => 500 ),
-			'cookies'  => array(),
-			'filename' => null,
-		);
 	}
 }

@@ -16,6 +16,9 @@
 		<testsuite name="scheduler">
 			<file>tests/test-scheduler.php</file>
 		</testsuite>
+		<testsuite name="id-resolver">
+			<file>tests/test-id-resolver.php</file>
+		</testsuite>
 	</testsuites>
 	<coverage cacheDirectory=".phpunit.cache">
 		<include>

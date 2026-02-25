@@ -9,6 +9,7 @@ namespace ChoctawNation\CNHSA_Federation;
 
 use ChoctawNation\CNHSA_Federation\WP\AdminScreen\Admin_Screen;
 use ChoctawNation\CNHSA_Federation\WP\Cron_Handler;
+use ChoctawNation\CNHSA_Federation\WP\ID_Resolver;
 use ChoctawNation\CNHSA_Federation\WP\Notifier;
 use ChoctawNation\CNHSA_Federation\WP\Scheduler;
 
@@ -116,8 +117,9 @@ class Plugin_Loader {
 		$notifier           = new Notifier( array( 'kroelke@choctawnation.com', 'bperkins@choctawnation.com' ) );
 		$scheduler          = new Scheduler( $notifier );
 		$environment        = wp_get_environment_type();
-		$service_publisher  = new Transport\Http\Service_Publisher( $environment );
-		$location_publisher = new Transport\Http\Location_Publisher( $environment );
+		$id_resolver        = new ID_Resolver( $environment, $notifier );
+		$service_publisher  = new Transport\Http\Service_Publisher( $environment, $id_resolver, $notifier );
+		$location_publisher = new Transport\Http\Location_Publisher( $environment, $id_resolver, $notifier );
 		$cron               = new Cron_Handler( $scheduler, $service_publisher, $location_publisher );
 		$cron->wire_callbacks();
 	}
