@@ -114,13 +114,15 @@ class Plugin_Loader {
 	 * Allows for async POSTing of data to federated sites on save of services and locations, powered by WP Cron and Transporters.
 	 */
 	private function wire_cron_hook_callbacks() {
-		$notifier           = new Notifier( array( 'kroelke@choctawnation.com', 'bperkins@choctawnation.com' ) );
-		$scheduler          = new Scheduler( $notifier );
-		$environment        = wp_get_environment_type();
-		$id_resolver        = new ID_Resolver( $environment, $notifier );
-		$service_publisher  = new Transport\Http\Service_Publisher( $environment, $id_resolver, $notifier );
-		$location_publisher = new Transport\Http\Location_Publisher( $environment, $id_resolver, $notifier );
-		$cron               = new Cron_Handler( $scheduler, $service_publisher, $location_publisher );
+		$notifier                 = new Notifier( array( 'kroelke@choctawnation.com', 'bperkins@choctawnation.com' ) );
+		$scheduler                = new Scheduler( $notifier );
+		$environment              = wp_get_environment_type();
+		$id_resolver              = new ID_Resolver( $environment, $notifier );
+		$service_payload_factory  = new WP\Payload\Service_Payload_Factory();
+		$service_publisher        = new Transport\Http\Service_Publisher( $environment, $id_resolver, $service_payload_factory, $notifier );
+		$location_payload_factory = new WP\Payload\Location_Payload_Factory();
+		$location_publisher       = new Transport\Http\Location_Publisher( $environment, $id_resolver, $location_payload_factory, $notifier );
+		$cron                     = new Cron_Handler( $scheduler, $service_publisher, $location_publisher );
 		$cron->wire_callbacks();
 	}
 }
