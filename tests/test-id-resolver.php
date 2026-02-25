@@ -90,9 +90,9 @@ class Test_ID_Resolver extends WP_UnitTestCase {
 			)
 		);
 		HTTP_Requests::custom_callback_request( $callback );
-		$this->resolver->find_cnhsa_id( 'services', $service_post );
+		$found_post = $this->resolver->find_cnhsa_id( 'services', $service_post );
 		HTTP_Requests::clear_filters();
-		$this->assertEquals( 123, get_post_meta( $service_post->ID, 'cnhsa_services_id', true ) );
+		$this->assertEquals( 123, $found_post );
 	}
 
 	/**
@@ -141,9 +141,9 @@ class Test_ID_Resolver extends WP_UnitTestCase {
 			)
 		);
 		HTTP_Requests::custom_callback_request( $callback );
-		$this->resolver->find_cnhsa_id( 'location', $location_post );
+		$found_post = $this->resolver->find_cnhsa_id( 'location', $location_post );
 		HTTP_Requests::clear_filters();
-		$this->assertEquals( 456, get_post_meta( $location_post->ID, 'cnhsa_location_id', true ) );
+		$this->assertEquals( 456, $found_post );
 	}
 
 	/**

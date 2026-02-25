@@ -57,9 +57,6 @@ class ID_Resolver {
 		} elseif ( 'location' === $post_type ) {
 			$cnhsa_id = $this->find_cnhsa_location_id( $post->post_name );
 		}
-		if ( 0 !== $cnhsa_id ) {
-			update_post_meta( $post->ID, "cnhsa_{$post_type}_id", $cnhsa_id );
-		}
 		return $cnhsa_id;
 	}
 
