@@ -1,6 +1,6 @@
 <?php
 /**
- * Class Service Payload Builder
+ * Class Service Payload Factory
  *
  * @package ChoctawNation\CNHSA_Federation
  */
@@ -11,19 +11,18 @@ use WP_Error;
 use WP_Post;
 
 /**
- * Service Payload Builder Class
+ * Service Payload Factory Class
  * Responsible for constructing the payload for service posts to be sent to the external API.
  */
-class Service_Payload_Builder {
+class Service_Payload_Factory extends Payload_Factory {
 	/**
 	 * Builds the payload for a service post.
 	 *
 	 * @param WP_Post $data The service post object.
-	 * @return string|WP_Error The payload array or a WP_Error on failure.
+	 * @return array|WP_Error|null The payload array, a WP_Error on failure, or null if no payload is needed.
 	 */
-	public function build_payload( WP_Post $data ): string|WP_Error {
-		$content = $this->build_acf_field_data( $data->ID );
-
+	public function create_payload( WP_Post $data ): array|WP_Error|null {
+		$content   = $this->build_acf_field_data( $data->ID );
 		$rest_data = array(
 			'title'     => $data->post_title,
 			'status'    => $data->post_status,
@@ -44,9 +43,7 @@ class Service_Payload_Builder {
 			$rest_data['additional_categories'] = $additional_categories;
 		}
 
-		return wp_json_encode(
-			$rest_data
-		);
+		return $rest_data;
 	}
 
 	/**
@@ -55,7 +52,7 @@ class Service_Payload_Builder {
 	 * @param int $id The post ID.
 	 * @return array The ACF field data.
 	 */
-	public function build_acf_field_data( int $id ): array {
+	private function build_acf_field_data( int $id ): array {
 		$content = array();
 		$fields  = array(
 			'cnhsa_eligibility_guidelines',
@@ -95,7 +92,7 @@ class Service_Payload_Builder {
 	 * @param array|null $media The related media field data.
 	 * @return array The processed related media data.
 	 */
-	public function handle_related_media( $media ): array {
+	private function handle_related_media( $media ): array {
 		if ( empty( $media ) ) {
 			return array();
 		}
@@ -124,7 +121,7 @@ class Service_Payload_Builder {
 	 * @param int $id The post ID.
 	 * @return array|null The additional categories or null if none found.
 	 */
-	public function add_additional_categories( int $id ): ?array {
+	private function add_additional_categories( int $id ): ?array {
 		$categories = get_categories(
 			array(
 				'object_ids' => $id,

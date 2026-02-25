@@ -1,6 +1,6 @@
 <?php
 /**
- * Class Location Payload Builder
+ * Class Location Payload Factory
  *
  * @package ChoctawNation\CNHSA_Federation
  */
@@ -8,19 +8,29 @@
 namespace ChoctawNation\CNHSA_Federation\WP\Payload;
 
 use WP_Post;
+use WP_Error;
 
 /**
- * Location Payload Builder Class
+ * Location Payload Factory Class
  * Responsible for constructing the payload for location posts to be sent to the external API.
  */
-class Location_Payload_Builder {
+class Location_Payload_Factory extends Payload_Factory {
 	/**
 	 * Builds the payload for location posts.
 	 *
-	 * @param WP_Post[] $locations The location post objects.
-	 * @return array The payload array.
+	 * @param WP_Post $post The location post objects.
+	 * @return array|WP_Error|null The payload array, a WP_Error on failure, or null if no payload is needed.
 	 */
-	public function build_payload( array $locations ): array {
+	public function create_payload( WP_Post $post ): array|WP_Error|null {
+		/**
+		 * Array of location posts
+		 *
+		 * @var WP_Post[] $location
+		 */
+		$locations = get_field( 'location', $post->ID );
+		if ( empty( $locations ) ) {
+			return null;
+		}
 		$location_data = array();
 		foreach ( $locations as $location ) {
 			$data = array(

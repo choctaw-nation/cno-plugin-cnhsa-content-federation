@@ -10,6 +10,7 @@ namespace ChoctawNation\CNHSA_Federation\Transport\Http;
 
 use ChoctawNation\CNHSA_Federation\WP\ID_Resolver;
 use ChoctawNation\CNHSA_Federation\WP\Notifier;
+use ChoctawNation\CNHSA_Federation\WP\Payload\Payload_Factory;
 use Exception;
 use WP_Post;
 
@@ -39,22 +40,31 @@ abstract class Abstract_Publisher {
 	protected Notifier $notifier;
 
 	/**
+	 * Payload factory instance for preparing data to send to the API.
+	 *
+	 * @var Payload_Factory
+	 */
+	protected Payload_Factory $payload_factory;
+
+	/**
 	 * Constructor for the Abstract_Publisher class.
 	 *
 	 * @param 'local'|'development'|'staging'|'production' $environment The environment type to determine the base URL.
 	 * @param ID_Resolver                                  $id_resolver The ID resolver instance.
+	 * @param Payload_Factory                              $payload_factory The payload factory instance for preparing data.
 	 * @param Notifier                                     $notifier The notifier instance.
 	 */
-	public function __construct( string $environment, ID_Resolver $id_resolver, Notifier $notifier ) {
-		$env_urls          = array(
+	public function __construct( string $environment, ID_Resolver $id_resolver, Payload_Factory $payload_factory, Notifier $notifier ) {
+		$env_urls              = array(
 			'production'  => 'https://www.cnhsa.com',
 			'staging'     => 'https://healthclinstg.wpenginepowered.com',
 			'development' => 'https://healthclindev.wpenginepowered.com',
 			'local'       => get_transient( 'cnhsa_federation_local_url' ) ?: 'https://cnhsa.local', // phpcs:ignore Universal.Operators.DisallowShortTernary.Found
 		);
-		$this->base_url    = ( $env_urls[ $environment ] ?? 'https://www.cnhsa.com' ) . '/wp-json/cnhsa/v1';
-		$this->id_resolver = $id_resolver;
-		$this->notifier    = $notifier;
+		$this->base_url        = ( $env_urls[ $environment ] ?? 'https://www.cnhsa.com' ) . '/wp-json/cnhsa/v1';
+		$this->id_resolver     = $id_resolver;
+		$this->payload_factory = $payload_factory;
+		$this->notifier        = $notifier;
 	}
 
 	/**
@@ -79,8 +89,6 @@ abstract class Abstract_Publisher {
 
 		return base64_encode( $user . ':' . $pass ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode
 	}
-
-	abstract public function get_cnhsa_id( WP_Post $post ): int;
 
 	abstract public function publish_content( WP_Post $post ): void;
 }
