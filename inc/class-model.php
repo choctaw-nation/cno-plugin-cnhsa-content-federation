@@ -17,100 +17,6 @@ use WP_Post;
  * Manages the data operations for the CNHSA Federation.
  */
 class Model {
-
-	/**
-	 * Gets the CNHSA services ID for a post.
-	 *
-	 * @param WP_Post $post The post object.
-	 * @return int The CNHSA services ID, or 0 if not found.
-	 */
-	public function get_cnhsa_services_id( WP_Post $post ): int {
-		$cnhsa_services_id = get_post_meta( $post->ID, 'cnhsa_services_id', true );
-		if ( empty( $cnhsa_services_id ) ) {
-			$cnhsa_services_id = $this->find_cnhsa_services_id( $post );
-			if ( 0 !== $cnhsa_services_id ) {
-				update_post_meta( $post->ID, 'cnhsa_services_id', $cnhsa_services_id );
-			}
-		}
-		return (int) $cnhsa_services_id;
-	}
-
-	/**
-	 * Update health location in the CNHSA Federation.
-	 *
-	 * @param int     $post_id The ID of the post to update.
-	 * @param WP_Post $data The data to update the health location with.
-	 */
-	public function update_health_location( int $post_id, WP_Post $data ): void {
-		// This method can be implemented similarly to update_service, but targeting the health location endpoint.
-	}
-
-	/**
-	 * Finds the CNHSA services ID for a post by title.
-	 *
-	 * @param WP_Post $post The post object.
-	 * @return int The CNHSA services ID, or 0 if not found.
-	 */
-	private function find_cnhsa_services_id( WP_Post $post ): int {
-		$response = wp_remote_get(
-			"{$this->base_url}/service?title={$post->post_name}",
-			array(
-				'headers' => array(
-					'Authorization' => 'Basic ' . $this->get_auth(),
-				),
-			)
-		);
-		if ( is_wp_error( $response ) || 200 !== wp_remote_retrieve_response_code( $response ) ) {
-			error_log( 'Error fetching CNHSA service ID: ' . ( is_wp_error( $response ) ? $response->get_error_message() : 'Invalid response code' ) ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
-			return 0;
-		}
-		$body = wp_remote_retrieve_body( $response );
-		$data = json_decode( $body, true );
-		if ( empty( $data ) || ! is_array( $data ) || ! isset( $data['data'] ) ) {
-			return 0;
-		}
-		return (int) $data['data']['id'];
-	}
-
-	/**
-	 * Creates or updates a service.
-	 *
-	 * @param 'POST'|'PUT' $method The HTTP method to use ('POST' for create, 'PUT' for update).
-	 * @param int          $post_id The ID of the post to create or update.
-	 * @param WP_Post      $data The data to create or update the service with.
-	 */
-	private function insert_service( string $method, int $post_id, WP_Post $data ): void {
-		$url           = $post_id ? "{$this->base_url}/service/{$post_id}" : "{$this->base_url}/service";
-		$response      = wp_remote_post(
-			$url,
-			array(
-				'method'  => $method,
-				'body'    => $this->prepare_data( $data ),
-				'headers' => array(
-					'Content-Type'  => 'application/json',
-					'Authorization' => 'Basic ' . $this->get_auth(),
-				),
-			)
-		);
-		$response_code = wp_remote_retrieve_response_code( $response );
-		if ( is_wp_error( $response ) || 201 !== $response_code ) {
-			$body = json_decode( wp_remote_retrieve_body( $response ), true );
-			wp_mail(
-				'kroelke@choctawnation.com',
-				'CNHSA Federation API Error',
-				sprintf(
-					'%s error: %s',
-					$body['code'] ?? $response_code,
-					$body['message'] ?? $body['error']
-				)
-			);
-		}
-		$body = json_decode( wp_remote_retrieve_body( $response ), true );
-		if ( isset( $body['data']['id'] ) ) {
-			update_post_meta( $data->ID, 'cnhsa_services_id', (int) $body['data']['id'] );
-		}
-	}
-
 	/**
 	 * Prepares REST Data for the CNHSA Federation API.
 	 *
@@ -211,40 +117,7 @@ class Model {
 		return $media_data;
 	}
 
-	/**
-	 * Builds the location payload for the CNHSA Federation API.
-	 *
-	 * @param int $id The post ID.
-	 * @return array|null The location payload or null if not found.
-	 */
-	private function build_location_payload( int $id ): ?array {
-		/**
-		 * Array of location posts
-		 *
-		 * @var WP_Post[] $location
-		 */
-		$locations = get_field( 'location', $id );
-		if ( empty( $locations ) ) {
-			return null;
-		}
-		$location_data = array();
-		foreach ( $locations as $location ) {
-			$data = array(
-				'cno_location_id'         => $location->ID,
-				'cnhsa_id'                => empty( get_field( 'cnhsa_id', $location->ID ) ) ? null : (int) get_field( 'cnhsa_id', $location->ID ),
-				'address'                 => get_field( 'address', $location->ID ),
-				'city_state_zip'          => get_field( 'city_state_zip', $location->ID ),
-				'phone_number'            => get_field( 'phone_number', $location->ID ),
-				'additional_phone_number' => empty( get_field( 'additional_phone_number', $location->ID ) ) ? null : get_field( 'additional_phone_number', $location->ID ),
-				'fax_number'              => empty( get_field( 'fax_number', $location->ID ) ) ? null : get_field( 'fax_number', $location->ID ),
-			);
-			if ( null === $data['cnhsa_id'] ) {
-				$data['location_name'] = $location->post_title;
-			}
-			$location_data[] = $data;
-		}
-		return $location_data;
-	}
+
 
 
 	/**
