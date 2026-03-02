@@ -30,6 +30,13 @@ class Test_ID_Resolver extends WP_UnitTestCase {
 	private static array $dummy_posts;
 
 	/**
+	 * Base URL for API requests.
+	 *
+	 * @var string $base_url
+	 */
+	private string $base_url = 'https://cnhsa.test';
+
+	/**
 	 * Set Up the test environment.
 	 */
 	public static function set_up_before_class(): void {
@@ -60,10 +67,7 @@ class Test_ID_Resolver extends WP_UnitTestCase {
 	 */
 	public function set_up(): void {
 		parent::set_up();
-		$notifier       = $this->getMockBuilder( Notifier::class )
-			->disableOriginalConstructor()
-			->getMock();
-		$this->resolver = new ID_Resolver( 'https://example.com/api', $notifier );
+		$this->resolver = new ID_Resolver();
 	}
 
 	/**
@@ -72,7 +76,7 @@ class Test_ID_Resolver extends WP_UnitTestCase {
 	public function test_get_cnhsa_id_by_post_meta() {
 		$post = $this->factory->post->create_and_get();
 		update_post_meta( $post->ID, 'cnhsa_services_id', 123 );
-		$this->resolver->find_cnhsa_id( 'services', $post );
+		$this->resolver->find_cnhsa_id( 'services', $post, $this->base_url );
 		$this->assertEquals( 123, get_post_meta( $post->ID, 'cnhsa_services_id', true ) );
 	}
 
@@ -90,7 +94,7 @@ class Test_ID_Resolver extends WP_UnitTestCase {
 			)
 		);
 		HTTP_Requests::custom_callback_request( $callback );
-		$found_post = $this->resolver->find_cnhsa_id( 'services', $service_post );
+		$found_post = $this->resolver->find_cnhsa_id( 'services', $service_post, $this->base_url );
 		HTTP_Requests::clear_filters();
 		$this->assertEquals( 123, $found_post );
 	}
@@ -141,7 +145,7 @@ class Test_ID_Resolver extends WP_UnitTestCase {
 			)
 		);
 		HTTP_Requests::custom_callback_request( $callback );
-		$found_post = $this->resolver->find_cnhsa_id( 'location', $location_post );
+		$found_post = $this->resolver->find_cnhsa_id( 'location', $location_post, $this->base_url );
 		HTTP_Requests::clear_filters();
 		$this->assertEquals( 456, $found_post );
 	}

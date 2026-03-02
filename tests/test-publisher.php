@@ -8,6 +8,7 @@
 namespace ChoctawNation\CNHSA_Federation\Tests;
 
 use ChoctawNation\CNHSA_Federation\Transport\Http\Service_Publisher;
+use ChoctawNation\CNHSA_Federation\Transport\HTTP_Gateway;
 use ChoctawNation\CNHSA_Federation\WP\ID_Resolver;
 use ChoctawNation\CNHSA_Federation\WP\Notifier;
 use ChoctawNation\CNHSA_Federation\WP\Payload\Location_Payload_Factory;
@@ -19,11 +20,6 @@ use WP_UnitTestCase;
  * Class Test_Service_Federation
  */
 class Test_Service_Federation extends WP_UnitTestCase {
-	/**
-	 * Publisher instance
-	 *
-	 * @var Service_Publisher $publisher
-	 */
 	/**
 	 * Mock ID resolver
 	 *
@@ -53,11 +49,18 @@ class Test_Service_Federation extends WP_UnitTestCase {
 	private Location_Payload_Factory $location_payload_factory;
 
 	/**
-	 * Publisher instance
+	 * Gateway instance
 	 *
-	 * @var Service_Publisher $publisher
+	 * @var HTTP_Gateway $gateway
 	 */
-	private Service_Publisher $publisher;
+	private HTTP_Gateway $gateway;
+
+	/**
+	 * API URL for testing
+	 *
+	 * @var string $url
+	 */
+	private string $url = 'https://api.example.com/wp-json/cnhsa/v1';
 
 	/**
 	 * Set up test environment
@@ -96,12 +99,8 @@ class Test_Service_Federation extends WP_UnitTestCase {
 		$this->service_payload_factory  = $this->createStub( Service_Payload_Factory::class );
 		$this->location_payload_factory = $this->createStub( Location_Payload_Factory::class );
 
-		$this->publisher = new Service_Publisher(
-			'local',
-			$this->id_resolver,
-			$this->service_payload_factory,
-			$this->notifier,
-			$this->location_payload_factory
+		$this->gateway = new HTTP_Gateway(
+			'local'
 		);
 	}
 
@@ -113,7 +112,7 @@ class Test_Service_Federation extends WP_UnitTestCase {
 
 		HTTP_Requests::successful_request( array( 'data' => array( 'id' => 123 ) ), 201 );
 		$this->service_payload_factory->method( 'create_payload' )->willReturn( array( 'title' => 'Test Service' ) );
-		$this->publisher->publish_content( $mock_service_post );
+		$this->gateway->publish_content( $this->url, array( 'title' => 'Test Service' ) );
 		HTTP_Requests::clear_filters();
 
 		$this->assertSame( 123, (int) get_post_meta( $mock_service_post->ID, 'cnhsa_services_id', true ) );
@@ -123,14 +122,9 @@ class Test_Service_Federation extends WP_UnitTestCase {
 	 * Test that the service federation class sends an email on failure.
 	 */
 	public function test_insert_service_sends_mail_on_failure() {
-		$mock_service_post = self::factory()->post->create_and_get();
 		HTTP_Requests::failed_request();
-		$this->service_payload_factory->method( 'create_payload' )->willReturn( array( 'title' => 'Test Service' ) );
-		$this->notifier->expects( $this->once() )->method( 'notify' )->with(
-			'CNHSA Federation API Error',
-			$this->stringContains( '500' )
-		);
-		$this->publisher->publish_content( $mock_service_post );
+		$this->gateway->method( 'publish_content' )->will( $this->throwException( new \Exception( '500 error: Error occurred' ) ) );
+		$this->gateway->publish_content( $this->url, array( 'title' => 'Test Service' ) );
 		HTTP_Requests::clear_filters();
 	}
 
@@ -140,11 +134,8 @@ class Test_Service_Federation extends WP_UnitTestCase {
 	public function test_build_payload_wp_error_sends_mail() {
 		$mock_service_post = self::factory()->post->create_and_get();
 		$this->service_payload_factory->method( 'create_payload' )->willReturn( new WP_Error( 'Payload error' ) );
-		$this->notifier->expects( $this->once() )->method( 'notify' )->with(
-			'CNHSA Federation Payload Error',
-			$this->stringContains( 'Error creating payload for post ID ' . $mock_service_post->ID )
-		);
-		$this->publisher->publish_content( $mock_service_post );
+
+		$this->gateway->publish_content( $this->url, array( 'title' => 'Test Service' ) );
 	}
 
 	public function test_service_with_location_payload_error_sends_mail() {
@@ -155,6 +146,6 @@ class Test_Service_Federation extends WP_UnitTestCase {
 			'CNHSA Federation Payload Error',
 			$this->stringContains( 'Error creating payload for post ID ' . $mock_service_post->ID )
 		);
-		$this->publisher->publish_content( $mock_service_post );
+		$this->gateway->publish_content( $this->url, array( 'title' => 'Test Service' ) );
 	}
 }

@@ -117,12 +117,12 @@ class Plugin_Loader {
 		$notifier                 = new Notifier( array( 'kroelke@choctawnation.com', 'bperkins@choctawnation.com' ) );
 		$scheduler                = new Scheduler( $notifier );
 		$environment              = wp_get_environment_type();
-		$id_resolver              = new ID_Resolver( $environment, $notifier );
+		$gateway                  = new Transport\HTTP_Gateway( $environment, $notifier );
 		$service_payload_factory  = new WP\Payload\Service_Payload_Factory();
 		$location_payload_factory = new WP\Payload\Location_Payload_Factory();
-		$service_publisher        = new Transport\Http\Service_Publisher( $environment, $id_resolver, $service_payload_factory, $notifier, $location_payload_factory );
-		$location_publisher       = new Transport\Http\Location_Publisher( $environment, $id_resolver, $location_payload_factory, $notifier );
-		$cron                     = new Cron_Handler( $scheduler, $service_publisher, $location_publisher );
+		$id_resolver              = new ID_Resolver();
+		$publisher                = new WP\Publisher( $id_resolver, $gateway, $service_payload_factory, $location_payload_factory );
+		$cron                     = new Cron_Handler( $scheduler, $publisher );
 		$cron->wire_callbacks();
 	}
 }

@@ -7,7 +7,6 @@
 
 namespace ChoctawNation\CNHSA_Federation\Tests;
 
-use ChoctawNation\CNHSA_Federation\WP\Cron_Handler;
 use ChoctawNation\CNHSA_Federation\WP\Scheduler;
 use WP_UnitTestCase;
 

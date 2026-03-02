@@ -4,9 +4,6 @@
 		<testsuite name="admin-screen">
 			<file>tests/test-admin-screen-registration.php</file>
 		</testsuite>
-		<testsuite name="service-federation">
-			<file>tests/test-service-federation.php</file>
-		</testsuite>
 		<testsuite name="cron-handler">
 			<file>tests/test-cron-handler.php</file>
 		</testsuite>
@@ -19,6 +16,9 @@
 		<testsuite name="id-resolver">
 			<file>tests/test-id-resolver.php</file>
 		</testsuite>
+		<testsuite name="http-gateway">
+			<file>tests/test-http-gateway.php</file>
+		</testsuite>
 	</testsuites>
 	<coverage cacheDirectory=".phpunit.cache">
 		<include>
@@ -27,7 +27,6 @@
 		<exclude>
 			<directory prefix="class-" suffix=".php">inc/WP/AdminScreen/</directory>
 			<file>inc/Transport/class-rest-router.php</file>
-			<file>inc/plugin-loader.php</file>
 			<file>inc/class-model.php</file>
 			<file>inc/class-plugin-loader.php</file>
 		</exclude>

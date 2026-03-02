@@ -36,10 +36,10 @@ class Scheduler {
 	 */
 	public function __construct( Notifier $notifier ) {
 		$this->cron_keys = array(
-			'services'  => array(
+			'services' => array(
 				'update' => 'cnhsa_federation_update_services',
 			),
-			'locations' => array(
+			'location' => array(
 				'update' => 'cnhsa_federation_update_health_location',
 			),
 		);
@@ -72,7 +72,7 @@ class Scheduler {
 		if ( $this->should_skip( $post, $update ) ) {
 			return null;
 		}
-		return $this->schedule_single_event( $this->cron_keys['locations']['update'], array( $post ) );
+		return $this->schedule_single_event( $this->cron_keys['location']['update'], array( $post ) );
 	}
 
 	/**

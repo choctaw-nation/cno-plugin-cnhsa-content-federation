@@ -8,9 +8,9 @@
 namespace ChoctawNation\CNHSA_Federation\Tests;
 
 use ChoctawNation\CNHSA_Federation\WP\Cron_Handler;
+use ChoctawNation\CNHSA_Federation\WP\ID_Resolver;
 use ChoctawNation\CNHSA_Federation\WP\Scheduler;
-use ChoctawNation\CNHSA_Federation\Transport\Http\Service_Publisher;
-use ChoctawNation\CNHSA_Federation\Transport\Http\Location_Publisher;
+use ChoctawNation\CNHSA_Federation\WP\Publisher;
 use WP_UnitTestCase;
 
 /**
@@ -32,18 +32,11 @@ class Test_Cron_Handler extends WP_UnitTestCase {
 	private $scheduler;
 
 	/**
-	 * Service publisher mock for testing the wiring of hooks.
+	 * Service Publisher instance for testing the wiring of hooks.
 	 *
 	 * @var Service_Publisher $service_publisher
 	 */
-	private $service_publisher;
-
-	/**
-	 * Location publisher mock for testing the wiring of hooks.
-	 *
-	 * @var Location_Publisher $location_publisher
-	 */
-	private $location_publisher;
+	private Publisher $publisher;
 
 	/**
 	 * Set up custom post types for testing.
@@ -68,22 +61,18 @@ class Test_Cron_Handler extends WP_UnitTestCase {
 	 */
 	public function set_up(): void {
 		parent::set_up();
-		$notifier                 = $this->getMockBuilder( \ChoctawNation\CNHSA_Federation\WP\Notifier::class )
+		$notifier           = $this->getMockBuilder( \ChoctawNation\CNHSA_Federation\WP\Notifier::class )
 		->disableOriginalConstructor()
 		->getMock();
-		$this->scheduler          = $this->getMockBuilder( Scheduler::class )
+		$this->scheduler    = $this->getMockBuilder( Scheduler::class )
 		->onlyMethods( array( 'schedule_services_update', 'schedule_locations_update' ) )
 		->setConstructorArgs( array( $notifier ) )
 		->getMock();
-		$this->location_publisher = $this->getMockBuilder( Location_Publisher::class )
+		$this->publisher    = $this->getMockBuilder( Publisher::class )
+		->onlyMethods( array( 'update_services', 'update_location' ) )
 		->disableOriginalConstructor()
-		->onlyMethods( array( 'publish_content' ) )
 		->getMock();
-		$this->service_publisher  = $this->getMockBuilder( Service_Publisher::class )
-		->disableOriginalConstructor()
-		->onlyMethods( array( 'publish_content' ) )
-		->getMock();
-		$this->cron_handler       = new Cron_Handler( $this->scheduler, $this->service_publisher, $this->location_publisher );
+		$this->cron_handler = new Cron_Handler( $this->scheduler, $this->publisher );
 	}
 	/**
 	 * Test that the cron handler class can be instantiated and has the expected methods.
@@ -141,7 +130,7 @@ class Test_Cron_Handler extends WP_UnitTestCase {
 	/**
 	 * Test that the service publisher's create_service method is called when the corresponding cron hook is triggered.
 	 */
-	public function test_service_publisher_methods_fire_on_cron_trigger() {
+	public function test_publisher_methods_fire_on_cron_trigger() {
 		$this->cron_handler->wire_callbacks();
 		// Set up credentials so that publisher methods are called.
 		update_option(
@@ -156,8 +145,8 @@ class Test_Cron_Handler extends WP_UnitTestCase {
 				),
 			)
 		);
-		$this->service_publisher->expects( $this->once() )
-		->method( 'publish_content' );
+		$this->publisher->expects( $this->once() )
+		->method( 'update_services' );
 		$post = self::factory()->post->create_and_get( array( 'post_type' => 'services' ) );
 		do_action( $this->scheduler->cron_keys['services']['update'], $post );
 		// Tear down credentials.
@@ -165,5 +154,6 @@ class Test_Cron_Handler extends WP_UnitTestCase {
 			'cnhsa_federation_options',
 			array()
 		);
+		HTTP_Requests::clear_filters();
 	}
 }

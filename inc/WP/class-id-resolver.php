@@ -9,6 +9,7 @@
 
 namespace ChoctawNation\CNHSA_Federation\WP;
 
+use Exception;
 use WP_Post;
 
 /**
@@ -16,46 +17,22 @@ use WP_Post;
  */
 class ID_Resolver {
 	/**
-	 * Base URL for the CNHSA API.
-	 *
-	 * @var string $base_url The base URL for the CNHSA API.
-	 */
-	private string $base_url;
-
-	/**
-	 * Notifier instance for logging errors.
-	 *
-	 * @var Notifier $notifier The notifier instance.
-	 */
-	private Notifier $notifier;
-
-	/**
-	 * Constructor
-	 *
-	 * @param string   $base_url The base URL for the CNHSA API.
-	 * @param Notifier $notifier The notifier instance.
-	 */
-	public function __construct( string $base_url, Notifier $notifier ) {
-		$this->base_url = untrailingslashit( $base_url );
-		$this->notifier = $notifier;
-	}
-
-	/**
 	 * Finds the CNHSA ID for a given post type and post ID.
 	 *
 	 * @param 'services'|'location' $post_type The post type (slug) to search for (e.g., 'services').
 	 * @param WP_Post               $post      The local post object to find the corresponding CNHSA ID for.
+	 * @param string                $base_url  The base URL of the CNHSA site to query.
 	 * @return int The CNHSA ID if found, or 0 if not found.
 	 */
-	public function find_cnhsa_id( string $post_type, WP_Post $post ): int {
+	public function find_cnhsa_id( string $post_type, WP_Post $post, string $base_url ): int {
 		$cnhsa_id = (int) get_post_meta( $post->ID, "cnhsa_{$post_type}_id", true );
 		if ( 0 !== $cnhsa_id ) {
 			return $cnhsa_id;
 		}
 		if ( 'services' === $post_type ) {
-			$cnhsa_id = $this->find_cnhsa_service_id( $post->post_name );
+			$cnhsa_id = $this->find_cnhsa_service_id( $base_url, $post->post_name );
 		} elseif ( 'location' === $post_type ) {
-			$cnhsa_id = $this->find_cnhsa_location_id( $post->post_name );
+			$cnhsa_id = $this->find_cnhsa_location_id( $base_url, $post->post_name );
 		}
 		return $cnhsa_id;
 	}
@@ -63,20 +40,22 @@ class ID_Resolver {
 	/**
 	 * Resolves the CNHSA ID for a given post type and post ID by querying the CNHSA API.
 	 *
+	 * @param string $base_url The base URL of the CNHSA site to query.
 	 * @param string $slug The slug of the local post to find the corresponding CNHSA ID for.
 	 * @return int The CNHSA ID if found, or 0 if not found.
+	 * @throws Exception If the API request fails or returns an invalid response.
 	 */
-	public function find_cnhsa_service_id( string $slug ): int {
+	public function find_cnhsa_service_id( string $base_url, string $slug ): int {
 		$paged = 1;
 		$found = array();
 		do {
 			++$paged;
 			$response = wp_remote_get(
-				"{$this->base_url}/wp/v2/services?_fields=id,title,slug&per_page=100&page={$paged}",
+				"{$base_url}/wp/v2/services?_fields=id,title,slug&per_page=100&page={$paged}",
 			);
 			if ( is_wp_error( $response ) || 200 !== wp_remote_retrieve_response_code( $response ) ) {
-				$this->notifier->notify( 'Error fetching CNHSA service ID', ( is_wp_error( $response ) ? $response->get_error_message() : 'Invalid response code' ) );
-				return 0;
+				$message = is_wp_error( $response ) ? $response->get_error_message() : 'Invalid response code';
+				throw new Exception( esc_textarea( $message ) );
 			}
 			$pages = (int) wp_remote_retrieve_header( $response, 'X-WP-TotalPages' );
 			$body  = wp_remote_retrieve_body( $response );
@@ -100,10 +79,12 @@ class ID_Resolver {
 	/**
 	 * Resolves the CNHSA ID for a given post type and post ID by querying the CNHSA API.
 	 *
+	 * @param string $base_url The base URL of the CNHSA site to query.
 	 * @param string $slug      The slug of the local post to find the corresponding CNHSA ID for.
 	 * @return int The CNHSA ID if found, or 0 if not found.
+	 * @throws Exception If the API request fails or returns an invalid response.
 	 */
-	public function find_cnhsa_location_id( string $slug ): int {
+	public function find_cnhsa_location_id( string $base_url, string $slug ): int {
 		$found          = array();
 		$post_type_keys = array( 'clinic', 'additional-facility' );
 
@@ -111,12 +92,11 @@ class ID_Resolver {
 			$paged = 1;
 			do {
 				$response = wp_remote_get(
-					"{$this->base_url}/wp/v2/{$post_type}?_fields=id,title,slug&per_page=100&page={$paged}",
+					"{$base_url}/wp/v2/{$post_type}?_fields=id,title,slug&per_page=100&page={$paged}",
 				);
 				if ( is_wp_error( $response ) || 200 !== wp_remote_retrieve_response_code( $response ) ) {
-					$this->notifier->notify( 'Error fetching CNHSA location ID', ( is_wp_error( $response ) ? $response->get_error_message() : 'Invalid response code' ) );
-					++$paged;
-					continue;
+					$message = is_wp_error( $response ) ? $response->get_error_message() : 'Invalid response code';
+					throw new Exception( esc_textarea( $message ) );
 				}
 				$pages = (int) wp_remote_retrieve_header( $response, 'X-WP-TotalPages' );
 				$body  = wp_remote_retrieve_body( $response );
