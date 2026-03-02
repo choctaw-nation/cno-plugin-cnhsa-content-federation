@@ -19,7 +19,13 @@ class Test_Utils {
 		$post_types = array( 'locations', 'services' );
 		foreach ( $post_types as $post_type ) {
 			if ( ! post_type_exists( $post_type ) ) {
-				register_post_type( $post_type, array( 'public' => true ) );
+				register_post_type(
+					$post_type,
+					array(
+						'public'     => true,
+						'taxonomies' => array( 'category' ),
+					)
+				);
 			}
 		}
 	}

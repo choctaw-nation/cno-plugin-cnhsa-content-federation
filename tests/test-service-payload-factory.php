@@ -109,4 +109,56 @@ class Test_Service_Payload_Factory extends WP_UnitTestCase {
 			$this->assertArrayHasKey( $key, $payload, "Payload is missing expected key: $key" );
 		}
 	}
+
+	/**
+	 * Related media field when empty should produce an empty array in post_data.
+	 */
+	public function test_related_media_empty_returns_empty_array_in_post_data() {
+		$service = $this->factory->post->create_and_get(
+			array(
+				'post_type'  => 'services',
+				'post_title' => 'Service With No Media',
+			)
+		);
+		$payload = $this->payload_factory->create_payload( $service );
+		$this->assertIsArray( $payload );
+		$this->assertArrayHasKey( 'post_data', $payload );
+		$this->assertArrayHasKey( 'related_media', $payload['post_data'] );
+		$this->assertIsArray( $payload['post_data']['related_media'] );
+		$this->assertCount( 0, $payload['post_data']['related_media'] );
+	}
+
+	/**
+	 * Related media entries should be transformed: `file_or_link` becomes `external_link`
+	 * and `external_link` is set appropriately for link vs pdf entries.
+	 */
+	public function test_related_media_transforms_entries() {
+		$service = $this->factory->post->create_and_get(
+			array(
+				'post_type'  => 'services',
+				'post_title' => 'Service With Media',
+			)
+		);
+		$media   = array(
+			array(
+				'link_text'     => 'Link One',
+				'file_or_link'  => 'some_link',
+				'internal_link' => 'https://example.com/page',
+			),
+			array(
+				'link_text'    => 'PDF One',
+				'file_or_link' => 'pdf_file',
+				'pdf'          => 'https://example.com/doc.pdf',
+			),
+		);
+		update_field( 'related_media', $media, $service->ID );
+		$payload = $this->payload_factory->create_payload( $service );
+		$this->assertIsArray( $payload );
+		$related = $payload['post_data']['related_media'];
+		$this->assertCount( 2, $related );
+		$this->assertEquals( 'external_link', $related[0]['file_or_link'] );
+		$this->assertEquals( 'https://example.com/page', $related[0]['external_link'] );
+		$this->assertEquals( 'external_link', $related[1]['file_or_link'] );
+		$this->assertEquals( 'https://example.com/doc.pdf', $related[1]['external_link'] );
+	}
 }

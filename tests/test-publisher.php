@@ -310,4 +310,63 @@ class Test_Service_Federation extends WP_UnitTestCase {
 		);
 		$this->publisher->update_services( $service_post );
 	}
+
+	/**
+	 * If the location payload factory returns null for a service, the
+	 * published payload should omit `location_data`.
+	 */
+	public function test_service_omits_location_data_when_location_payload_null() {
+		$service_post = $this->factory->post->create_and_get(
+			array(
+				'post_type'   => 'services',
+				'post_title'  => 'Test Service',
+				'post_status' => 'publish',
+			)
+		);
+		$this->id_resolver->method( 'find_cnhsa_id' )->willReturn( 1 );
+		$this->service_payload_factory->method( 'create_payload' )->willReturn(
+			array(
+				'title' => 'Test Service',
+			)
+		);
+		$this->location_payload_factory->method( 'create_payload' )->willReturn( null );
+		$this->gateway->expects( $this->once() )->method( 'publish_content' )->with(
+			$this->anything(),
+			$this->callback(
+				function ( $payload ) {
+					$this->assertIsArray( $payload );
+					$this->assertArrayHasKey( 'title', $payload );
+					$this->assertArrayNotHasKey( 'location_data', $payload );
+					$this->assertEquals( 'Test Service', $payload['title'] );
+					return true;
+				}
+			)
+		);
+		$this->publisher->update_services( $service_post );
+	}
+
+	/**
+	 * Unsupported post types should result in a notification being sent.
+	 */
+	public function test_notifier_called_on_unsupported_post_type() {
+		$post = $this->factory->post->create_and_get(
+			array(
+				'post_type'   => 'post',
+				'post_title'  => 'Unsupported',
+				'post_status' => 'publish',
+			)
+		);
+		// ID resolver and factories can return values but build_payload should
+		// produce an invalid_post_type WP_Error for unsupported post types.
+		$this->id_resolver->method( 'find_cnhsa_id' )->willReturn( 0 );
+		$this->service_payload_factory->method( 'create_payload' )->willReturn( array( 'title' => 'Unsupported' ) );
+		$this->location_payload_factory->method( 'create_payload' )->willReturn( array( 'address' => 'X' ) );
+		$this->notifier->expects( $this->once() )
+		->method( 'notify' )
+		->with(
+			'CNHSA Services Federation Failed',
+			$this->stringContains( 'Unsupported post type for payload creation' )
+		);
+		$this->publisher->update_services( $post );
+	}
 }
