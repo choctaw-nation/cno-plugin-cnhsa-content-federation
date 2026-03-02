@@ -119,8 +119,8 @@ class Plugin_Loader {
 		$environment              = wp_get_environment_type();
 		$id_resolver              = new ID_Resolver( $environment, $notifier );
 		$service_payload_factory  = new WP\Payload\Service_Payload_Factory();
-		$service_publisher        = new Transport\Http\Service_Publisher( $environment, $id_resolver, $service_payload_factory, $notifier );
 		$location_payload_factory = new WP\Payload\Location_Payload_Factory();
+		$service_publisher        = new Transport\Http\Service_Publisher( $environment, $id_resolver, $service_payload_factory, $notifier, $location_payload_factory );
 		$location_publisher       = new Transport\Http\Location_Publisher( $environment, $id_resolver, $location_payload_factory, $notifier );
 		$cron                     = new Cron_Handler( $scheduler, $service_publisher, $location_publisher );
 		$cron->wire_callbacks();
