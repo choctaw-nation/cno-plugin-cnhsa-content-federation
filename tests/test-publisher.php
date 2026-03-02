@@ -101,6 +101,40 @@ class Test_Service_Federation extends WP_UnitTestCase {
 		$this->publisher                = new Publisher( $this->id_resolver, $this->gateway, $this->service_payload_factory, $this->location_payload_factory, $this->notifier );
 	}
 
+	public function test_publisher_has_full_payload() {
+		$service_post = $this->factory->post->create_and_get(
+			array(
+				'post_type'   => 'services',
+				'post_title'  => 'Test Service',
+				'post_status' => 'publish',
+			)
+		);
+		$this->service_payload_factory->method( 'create_payload' )->willReturn(
+			array(
+				'title' => 'Test Service',
+			)
+		);
+		$this->location_payload_factory->method( 'create_payload' )->willReturn(
+			array(
+				'address' => '123 Main St',
+			)
+		);
+		$this->gateway->expects( $this->once() )->method( 'publish_content' )->with(
+			$this->anything(),
+			$this->callback(
+				function ( $payload ) {
+					$this->assertIsArray( $payload );
+					$this->assertArrayHasKey( 'title', $payload );
+					$this->assertArrayHasKey( 'location_data', $payload );
+					$this->assertEquals( 'Test Service', $payload['title'] );
+					$this->assertEquals( '123 Main St', $payload['location_data']['address'] );
+					return true;
+				}
+			)
+		);
+		$this->publisher->update_services( $service_post );
+	}
+
 	/**
 	 * Test service content posting to service endpoint
 	 */
