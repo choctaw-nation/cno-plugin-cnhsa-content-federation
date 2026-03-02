@@ -41,6 +41,7 @@ class Service_Publisher extends Abstract_Publisher {
 		parent::__construct( $environment, $id_resolver, $service_payload_factory, $notifier );
 		$this->location_payload_factory = $location_payload_factory;
 	}
+
 	/**
 	 * Publishes the service content to the CNHSA Environment.
 	 *

@@ -16,6 +16,7 @@ class Location_Publisher extends Abstract_Publisher {
 	public function get_cnhsa_id( WP_Post $post ): int {
 		// Implementation for retrieving the CNHSA ID for a location post.
 	}
+
 	/**
 	 * Publishes location data to the configured endpoint.
 	 *

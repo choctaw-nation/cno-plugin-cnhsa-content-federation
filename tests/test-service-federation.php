@@ -12,6 +12,7 @@ use ChoctawNation\CNHSA_Federation\WP\ID_Resolver;
 use ChoctawNation\CNHSA_Federation\WP\Notifier;
 use ChoctawNation\CNHSA_Federation\WP\Payload\Location_Payload_Factory;
 use ChoctawNation\CNHSA_Federation\WP\Payload\Service_Payload_Factory;
+use WP_Error;
 use WP_UnitTestCase;
 
 /**
@@ -131,5 +132,29 @@ class Test_Service_Federation extends WP_UnitTestCase {
 		);
 		$this->publisher->publish_content( $mock_service_post );
 		HTTP_Requests::clear_filters();
+	}
+
+	/**
+	 * Test that the service federation class sends an email on payload error.
+	 */
+	public function test_build_payload_wp_error_sends_mail() {
+		$mock_service_post = self::factory()->post->create_and_get();
+		$this->service_payload_factory->method( 'create_payload' )->willReturn( new WP_Error( 'Payload error' ) );
+		$this->notifier->expects( $this->once() )->method( 'notify' )->with(
+			'CNHSA Federation Payload Error',
+			$this->stringContains( 'Error creating payload for post ID ' . $mock_service_post->ID )
+		);
+		$this->publisher->publish_content( $mock_service_post );
+	}
+
+	public function test_service_with_location_payload_error_sends_mail() {
+		$mock_service_post = self::factory()->post->create_and_get();
+		$this->service_payload_factory->method( 'create_payload' )->willReturn( array( 'title' => 'Test Service' ) );
+		$this->location_payload_factory->method( 'create_payload' )->willReturn( new WP_Error( 'Payload error' ) );
+		$this->notifier->expects( $this->once() )->method( 'notify' )->with(
+			'CNHSA Federation Payload Error',
+			$this->stringContains( 'Error creating payload for post ID ' . $mock_service_post->ID )
+		);
+		$this->publisher->publish_content( $mock_service_post );
 	}
 }
