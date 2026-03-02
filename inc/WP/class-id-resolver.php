@@ -25,7 +25,7 @@ class ID_Resolver {
 	 * @return int The CNHSA ID if found, or 0 if not found.
 	 */
 	public function find_cnhsa_id( string $post_type, WP_Post $post, string $base_url ): int {
-		$cnhsa_id = (int) get_post_meta( $post->ID, "cnhsa_{$post_type}_id", true );
+		$cnhsa_id = (int) get_post_meta( $post->ID, 'cnhsa_id', true );
 		if ( 0 !== $cnhsa_id ) {
 			return $cnhsa_id;
 		}
