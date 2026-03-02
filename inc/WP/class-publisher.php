@@ -93,7 +93,7 @@ class Publisher {
 	 *
 	 * @param WP_Post $post The location post object to be published.
 	 */
-	public function update_location( WP_Post $post ) {
+	public function update_locations( WP_Post $post ) {
 		try {
 			$id   = $this->id_resolver->find_cnhsa_id( $post->post_type, $post, $this->gateway->base_url );
 			$url  = $id ? "{$this->gateway->base_url}/location/{$id}" : "{$this->gateway->base_url}/location";

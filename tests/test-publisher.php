@@ -198,7 +198,7 @@ class Test_Service_Federation extends WP_UnitTestCase {
 		$this->gateway->expects( $this->once() )
 		->method( 'publish_content' )
 		->with( $this->url . '/location/1', array( 'title' => 'Test Location' ) );
-		$this->publisher->update_location( $location_post );
+		$this->publisher->update_locations( $location_post );
 	}
 
 	/**
@@ -225,7 +225,7 @@ class Test_Service_Federation extends WP_UnitTestCase {
 				'id' => 456,
 			)
 		);
-		$this->publisher->update_location( $location_post );
+		$this->publisher->update_locations( $location_post );
 		$this->assertEquals( 456, get_post_meta( $location_post->ID, 'cnhsa_id', true ) );
 	}
 
@@ -250,7 +250,7 @@ class Test_Service_Federation extends WP_UnitTestCase {
 			'CNHSA Locations Federation Failed',
 			$this->stringContains( 'Publishing location post failed: Building payload failed: Payload creation failed' )
 		);
-		$this->publisher->update_location( $location_post );
+		$this->publisher->update_locations( $location_post );
 	}
 
 	/**
