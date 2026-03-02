@@ -7,12 +7,12 @@
 
 namespace ChoctawNation\CNHSA_Federation\Tests;
 
-use ChoctawNation\CNHSA_Federation\Transport\Http\Service_Publisher;
 use ChoctawNation\CNHSA_Federation\Transport\HTTP_Gateway;
 use ChoctawNation\CNHSA_Federation\WP\ID_Resolver;
 use ChoctawNation\CNHSA_Federation\WP\Notifier;
 use ChoctawNation\CNHSA_Federation\WP\Payload\Location_Payload_Factory;
 use ChoctawNation\CNHSA_Federation\WP\Payload\Service_Payload_Factory;
+use ChoctawNation\CNHSA_Federation\WP\Publisher;
 use WP_Error;
 use WP_UnitTestCase;
 
@@ -56,36 +56,33 @@ class Test_Service_Federation extends WP_UnitTestCase {
 	private HTTP_Gateway $gateway;
 
 	/**
+	 * Publisher instance
+	 *
+	 * @var Publisher $publisher
+	 */
+	private Publisher $publisher;
+
+	/**
 	 * API URL for testing
 	 *
 	 * @var string $url
 	 */
-	private string $url = 'https://api.example.com/wp-json/cnhsa/v1';
+	private string $url = 'https://cnhsa.local/wp-json/cnhsa/v1';
 
 	/**
 	 * Set up test environment
 	 */
 	public static function set_up_before_class(): void {
 		parent::set_up_before_class();
-		update_option(
-			'cnhsa_federation_options',
-			array(
-				'environments' => array( 'local' ),
-				'credentials'  => array(
-					'local' => array(
-						'username'     => 'test-user',
-						'app_password' => 'test-password',
-					),
-				),
-			)
-		);
+		Test_Utils::setup_federation_options();
+		Test_Utils::setup_post_types();
 	}
 
 	/**
 	 * Clean up options after tests
 	 */
 	public static function tear_down_after_class(): void {
-		delete_option( 'cnhsa_federation_options' );
+		Test_Utils::teardown_federation_options();
 		parent::tear_down_after_class();
 	}
 
@@ -98,54 +95,182 @@ class Test_Service_Federation extends WP_UnitTestCase {
 		$this->notifier                 = $this->getMockBuilder( Notifier::class )->getMock();
 		$this->service_payload_factory  = $this->createStub( Service_Payload_Factory::class );
 		$this->location_payload_factory = $this->createStub( Location_Payload_Factory::class );
+		$this->gateway                  = $this->getMockBuilder( HTTP_Gateway::class )
+		->setConstructorArgs( array( 'local' ) )
+		->getMock();
+		$this->publisher                = new Publisher( $this->id_resolver, $this->gateway, $this->service_payload_factory, $this->location_payload_factory, $this->notifier );
+	}
 
-		$this->gateway = new HTTP_Gateway(
-			'local'
+	/**
+	 * Test service content posting to service endpoint
+	 */
+	public function test_service_content_posts_to_service_endpoint(): void {
+		$service_post = $this->factory->post->create_and_get(
+			array(
+				'post_type'   => 'services',
+				'post_title'  => 'Test Service',
+				'post_status' => 'publish',
+			)
 		);
-	}
-
-	/**
-	 * Test that the service federation class can be instantiated and has the expected methods.
-	 */
-	public function test_insert_service_updates_post_meta_on_success() {
-		$mock_service_post = self::factory()->post->create_and_get();
-
-		HTTP_Requests::successful_request( array( 'data' => array( 'id' => 123 ) ), 201 );
-		$this->service_payload_factory->method( 'create_payload' )->willReturn( array( 'title' => 'Test Service' ) );
-		$this->gateway->publish_content( $this->url, array( 'title' => 'Test Service' ) );
-		HTTP_Requests::clear_filters();
-
-		$this->assertSame( 123, (int) get_post_meta( $mock_service_post->ID, 'cnhsa_services_id', true ) );
-	}
-
-	/**
-	 * Test that the service federation class sends an email on failure.
-	 */
-	public function test_insert_service_sends_mail_on_failure() {
-		HTTP_Requests::failed_request();
-		$this->gateway->method( 'publish_content' )->will( $this->throwException( new \Exception( '500 error: Error occurred' ) ) );
-		$this->gateway->publish_content( $this->url, array( 'title' => 'Test Service' ) );
-		HTTP_Requests::clear_filters();
-	}
-
-	/**
-	 * Test that the service federation class sends an email on payload error.
-	 */
-	public function test_build_payload_wp_error_sends_mail() {
-		$mock_service_post = self::factory()->post->create_and_get();
-		$this->service_payload_factory->method( 'create_payload' )->willReturn( new WP_Error( 'Payload error' ) );
-
-		$this->gateway->publish_content( $this->url, array( 'title' => 'Test Service' ) );
-	}
-
-	public function test_service_with_location_payload_error_sends_mail() {
-		$mock_service_post = self::factory()->post->create_and_get();
-		$this->service_payload_factory->method( 'create_payload' )->willReturn( array( 'title' => 'Test Service' ) );
-		$this->location_payload_factory->method( 'create_payload' )->willReturn( new WP_Error( 'Payload error' ) );
-		$this->notifier->expects( $this->once() )->method( 'notify' )->with(
-			'CNHSA Federation Payload Error',
-			$this->stringContains( 'Error creating payload for post ID ' . $mock_service_post->ID )
+		update_post_meta( $service_post->ID, 'cnhsa_id', '1' );
+		$this->id_resolver->method( 'find_cnhsa_id' )->willReturn( 1 );
+		$this->service_payload_factory->method( 'create_payload' )->willReturn(
+			array(
+				'title' => 'Test Service',
+			)
 		);
-		$this->gateway->publish_content( $this->url, array( 'title' => 'Test Service' ) );
+		$this->gateway->expects( $this->once() )
+		->method( 'publish_content' )
+		->with( $this->url . '/service/1', array( 'title' => 'Test Service' ) );
+		$this->publisher->update_services( $service_post );
+	}
+
+	/**
+	 * A new service will post to the service endpoint and update the post meta with the returned ID.
+	 */
+	public function test_service_content_posts_new_service(): void {
+		$service_post = $this->factory->post->create_and_get(
+			array(
+				'post_type'   => 'services',
+				'post_title'  => 'Test Service',
+				'post_status' => 'publish',
+			)
+		);
+		$this->id_resolver->method( 'find_cnhsa_id' )->willReturn( 0 );
+		$this->service_payload_factory->method( 'create_payload' )->willReturn(
+			array(
+				'title' => 'Test Service',
+			)
+		);
+		$this->gateway->expects( $this->once() )
+		->method( 'publish_content' )
+		->with( $this->url . '/service', array( 'title' => 'Test Service' ) )->willReturn(
+			array(
+				'id' => 123,
+			)
+		);
+		$this->publisher->update_services( $service_post );
+		$this->assertEquals( 123, get_post_meta( $service_post->ID, 'cnhsa_id', true ) );
+	}
+
+	/**
+	 * A gateway exception will be handled and sent via Notifier.
+	 */
+	public function test_service_content_handles_gateway_exception(): void {
+		$service_post = $this->factory->post->create_and_get(
+			array(
+				'post_type'   => 'services',
+				'post_title'  => 'Test Service',
+				'post_status' => 'publish',
+			)
+		);
+		$this->id_resolver->method( 'find_cnhsa_id' )->willReturn( 0 );
+		$this->service_payload_factory->method( 'create_payload' )->willReturn(
+			array(
+				'title' => 'Test Service',
+			)
+		);
+		$this->gateway->method( 'publish_content' )
+		->will( $this->throwException( new \Exception( 'Gateway error' ) ) );
+		$this->notifier->expects( $this->once() )
+		->method( 'notify' );
+		$result = $this->publisher->update_services( $service_post );
+	}
+
+	/**
+	 * Test location content posting to location endpoint
+	 */
+	public function test_location_content_posts_to_location_endpoint(): void {
+		$location_post = $this->factory->post->create_and_get(
+			array(
+				'post_type'   => 'location',
+				'post_title'  => 'Test Location',
+				'post_status' => 'publish',
+			)
+		);
+		update_post_meta( $location_post->ID, 'cnhsa_id', '1' );
+		$this->id_resolver->method( 'find_cnhsa_id' )->willReturn( 1 );
+		$this->location_payload_factory->method( 'create_payload' )->willReturn(
+			array(
+				'title' => 'Test Location',
+			)
+		);
+		$this->gateway->expects( $this->once() )
+		->method( 'publish_content' )
+		->with( $this->url . '/location/1', array( 'title' => 'Test Location' ) );
+		$this->publisher->update_location( $location_post );
+	}
+
+	/**
+	 * A new location will post to the location endpoint and update the post meta with the returned ID.
+	 */
+	public function test_location_content_posts_new_location(): void {
+		$location_post = $this->factory->post->create_and_get(
+			array(
+				'post_type'   => 'location',
+				'post_title'  => 'Test Location',
+				'post_status' => 'publish',
+			)
+		);
+		$this->id_resolver->method( 'find_cnhsa_id' )->willReturn( 0 );
+		$this->location_payload_factory->method( 'create_payload' )->willReturn(
+			array(
+				'title' => 'Test Location',
+			)
+		);
+		$this->gateway->expects( $this->once() )
+		->method( 'publish_content' )
+		->with( $this->url . '/location', array( 'title' => 'Test Location' ) )->willReturn(
+			array(
+				'id' => 456,
+			)
+		);
+		$this->publisher->update_location( $location_post );
+		$this->assertEquals( 456, get_post_meta( $location_post->ID, 'cnhsa_id', true ) );
+	}
+
+	/**
+	 * A payload creation failure will be handled and sent via Notifier.
+	 */
+	public function test_email_sent_on_location_payload_failure() {
+		$location_post = $this->factory->post->create_and_get(
+			array(
+				'post_type'   => 'location',
+				'post_title'  => 'Test Location',
+				'post_status' => 'publish',
+			)
+		);
+		$this->id_resolver->method( 'find_cnhsa_id' )->willReturn( 0 );
+		$this->location_payload_factory->method( 'create_payload' )->willReturn(
+			new WP_Error( 'payload_error', 'Payload creation failed' )
+		);
+		$this->notifier->expects( $this->once() )
+		->method( 'notify' )
+		->with(
+			'CNHSA Locations Federation Failed',
+			$this->stringContains( 'Publishing location post failed: Building payload failed: Payload creation failed' )
+		);
+		$this->publisher->update_location( $location_post );
+	}
+
+	public function test_email_sent_on_service_payload_failure() {
+		$service_post = $this->factory->post->create_and_get(
+			array(
+				'post_type'   => 'services',
+				'post_title'  => 'Test Service',
+				'post_status' => 'publish',
+			)
+		);
+		$this->id_resolver->method( 'find_cnhsa_id' )->willReturn( 0 );
+		$this->service_payload_factory->method( 'create_payload' )->willReturn(
+			new WP_Error( 'payload_error', 'Payload creation failed' )
+		);
+		$this->notifier->expects( $this->once() )
+		->method( 'notify' )
+		->with(
+			'CNHSA Services Federation Failed',
+			$this->stringContains( 'Publishing service post failed: Building payload failed: Payload creation failed' )
+		);
+		$this->publisher->update_services( $service_post );
 	}
 }

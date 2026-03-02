@@ -121,7 +121,7 @@ class Plugin_Loader {
 		$service_payload_factory  = new WP\Payload\Service_Payload_Factory();
 		$location_payload_factory = new WP\Payload\Location_Payload_Factory();
 		$id_resolver              = new ID_Resolver();
-		$publisher                = new WP\Publisher( $id_resolver, $gateway, $service_payload_factory, $location_payload_factory );
+		$publisher                = new WP\Publisher( $id_resolver, $gateway, $service_payload_factory, $location_payload_factory, $notifier );
 		$cron                     = new Cron_Handler( $scheduler, $publisher );
 		$cron->wire_callbacks();
 	}
