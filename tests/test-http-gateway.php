@@ -26,25 +26,14 @@ class Test_HTTP_Gateway extends WP_UnitTestCase {
 	 */
 	public static function set_up_before_class(): void {
 		parent::set_up_before_class();
-		update_option(
-			'cnhsa_federation_options',
-			array(
-				'environments' => array( 'local' ),
-				'credentials'  => array(
-					'local' => array(
-						'username'     => 'test-user',
-						'app_password' => 'test-password',
-					),
-				),
-			)
-		);
+		Test_Utils::setup_federation_options();
 	}
 
 	/**
 	 * Clean up options after tests
 	 */
 	public static function tear_down_after_class(): void {
-		delete_option( 'cnhsa_federation_options' );
+		Test_Utils::teardown_federation_options();
 		parent::tear_down_after_class();
 	}
 

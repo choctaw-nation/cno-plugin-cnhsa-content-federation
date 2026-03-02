@@ -7,6 +7,11 @@
 
 namespace ChoctawNation\CNHSA_Federation\WP;
 
+/**
+ * Class Notifier
+ *
+ * Handles sending notification emails to specified addresses.
+ */
 class Notifier {
 	/**
 	 * Array of email addresses to notify.

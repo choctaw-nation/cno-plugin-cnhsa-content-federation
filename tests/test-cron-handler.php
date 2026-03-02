@@ -43,17 +43,7 @@ class Test_Cron_Handler extends WP_UnitTestCase {
 	 */
 	public static function set_up_before_class(): void {
 		parent::set_up_before_class();
-		register_post_type( 'services', array( 'public' => true ) );
-		register_post_type( 'location', array( 'public' => true ) );
-	}
-
-	/**
-	 * Clean up after tests.
-	 */
-	public static function tear_down_after_class(): void {
-		unregister_post_type( 'services' );
-		unregister_post_type( 'location' );
-		parent::tear_down_after_class();
+		Test_Utils::setup_post_types();
 	}
 
 	/**

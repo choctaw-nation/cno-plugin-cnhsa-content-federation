@@ -41,25 +41,8 @@ class Test_ID_Resolver extends WP_UnitTestCase {
 	 */
 	public static function set_up_before_class(): void {
 		parent::set_up_before_class();
-		$post_types = array( 'services', 'location' );
-		foreach ( $post_types as $post_type ) {
-			register_post_type(
-				$post_type,
-				array(
-					'public' => true,
-				)
-			);
-		}
+		Test_Utils::setup_post_types();
 		self::$dummy_posts = self::factory()->post->create_many( 150 );
-	}
-
-	/**
-	 * Tear down the test environment.
-	 */
-	public static function tear_down_after_class(): void {
-		unregister_post_type( 'services' );
-		unregister_post_type( 'location' );
-		parent::tear_down_after_class();
 	}
 
 	/**
@@ -75,9 +58,9 @@ class Test_ID_Resolver extends WP_UnitTestCase {
 	 */
 	public function test_get_cnhsa_id_by_post_meta() {
 		$post = $this->factory->post->create_and_get();
-		update_post_meta( $post->ID, 'cnhsa_services_id', 123 );
+		update_post_meta( $post->ID, 'cnhsa_id', 123 );
 		$this->resolver->find_cnhsa_id( 'services', $post, $this->base_url );
-		$this->assertEquals( 123, get_post_meta( $post->ID, 'cnhsa_services_id', true ) );
+		$this->assertEquals( 123, get_post_meta( $post->ID, 'cnhsa_id', true ) );
 	}
 
 	/**
