@@ -124,11 +124,11 @@ class Test_ID_Resolver extends WP_UnitTestCase {
 		$location_post = $this->factory->post->create_and_get(
 			array(
 				'post_name' => 'test-location',
-				'post_type' => 'location',
+				'post_type' => 'locations',
 			)
 		);
 		HTTP_Requests::custom_callback_request( $callback );
-		$found_post = $this->resolver->find_cnhsa_id( 'location', $location_post, $this->base_url );
+		$found_post = $this->resolver->find_cnhsa_id( 'locations', $location_post, $this->base_url );
 		HTTP_Requests::clear_filters();
 		$this->assertEquals( 456, $found_post );
 	}

@@ -19,9 +19,9 @@ class ID_Resolver {
 	/**
 	 * Finds the CNHSA ID for a given post type and post ID.
 	 *
-	 * @param 'services'|'location' $post_type The post type (slug) to search for (e.g., 'services').
-	 * @param WP_Post               $post      The local post object to find the corresponding CNHSA ID for.
-	 * @param string                $base_url  The base URL of the CNHSA site to query.
+	 * @param 'services'|'locations' $post_type The post type (slug) to search for (e.g., 'services').
+	 * @param WP_Post                $post      The local post object to find the corresponding CNHSA ID for.
+	 * @param string                 $base_url  The base URL of the CNHSA site to query.
 	 * @return int The CNHSA ID if found, or 0 if not found.
 	 */
 	public function find_cnhsa_id( string $post_type, WP_Post $post, string $base_url ): int {
@@ -31,7 +31,7 @@ class ID_Resolver {
 		}
 		if ( 'services' === $post_type ) {
 			$cnhsa_id = $this->find_cnhsa_service_id( $base_url, $post->post_name );
-		} elseif ( 'location' === $post_type ) {
+		} elseif ( 'locations' === $post_type ) {
 			$cnhsa_id = $this->find_cnhsa_location_id( $base_url, $post->post_name );
 		}
 		return $cnhsa_id;

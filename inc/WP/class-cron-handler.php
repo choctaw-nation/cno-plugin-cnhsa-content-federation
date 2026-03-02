@@ -52,7 +52,7 @@ class Cron_Handler {
 	private function wire_save_post_hook_callbacks() {
 		$wiring = array(
 			'schedule_services_update'  => 'services',
-			'schedule_locations_update' => 'location',
+			'schedule_locations_update' => 'locations',
 		);
 		foreach ( $wiring as $method => $post_type ) {
 			add_action( "save_post_{$post_type}", array( $this->scheduler, $method ), 10, 3 );
@@ -63,7 +63,7 @@ class Cron_Handler {
 	 * Cron hooks' callbacks (powered by transporters)
 	 */
 	private function wire_cron_hook_callbacks() {
-		$post_types = array( 'services', 'location' );
+		$post_types = array( 'services', 'locations' );
 		foreach ( $post_types as $post_type ) {
 			$hook   = $this->scheduler->cron_keys[ $post_type ]['update'];
 			$method = 'update_' . $post_type;

@@ -33,7 +33,7 @@ class ACF_Fields {
 	}
 
 	/**
-	 * Register ACF fields for the 'location' post type.
+	 * Register ACF fields for the 'locations' post type.
 	 */
 	private static function register_location_fields() {
 		acf_add_local_field_group(

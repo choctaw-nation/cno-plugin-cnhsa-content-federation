@@ -183,7 +183,7 @@ class Test_Service_Federation extends WP_UnitTestCase {
 	public function test_location_content_posts_to_location_endpoint(): void {
 		$location_post = $this->factory->post->create_and_get(
 			array(
-				'post_type'   => 'location',
+				'post_type'   => 'locations',
 				'post_title'  => 'Test Location',
 				'post_status' => 'publish',
 			)
@@ -207,7 +207,7 @@ class Test_Service_Federation extends WP_UnitTestCase {
 	public function test_location_content_posts_new_location(): void {
 		$location_post = $this->factory->post->create_and_get(
 			array(
-				'post_type'   => 'location',
+				'post_type'   => 'locations',
 				'post_title'  => 'Test Location',
 				'post_status' => 'publish',
 			)
@@ -235,7 +235,7 @@ class Test_Service_Federation extends WP_UnitTestCase {
 	public function test_email_sent_on_location_payload_failure() {
 		$location_post = $this->factory->post->create_and_get(
 			array(
-				'post_type'   => 'location',
+				'post_type'   => 'locations',
 				'post_title'  => 'Test Location',
 				'post_status' => 'publish',
 			)
@@ -253,6 +253,9 @@ class Test_Service_Federation extends WP_UnitTestCase {
 		$this->publisher->update_location( $location_post );
 	}
 
+	/**
+	 * A payload creation failure will be handled and sent via Notifier.
+	 */
 	public function test_email_sent_on_service_payload_failure() {
 		$service_post = $this->factory->post->create_and_get(
 			array(

@@ -59,7 +59,7 @@ class Test_Cron_Handler extends WP_UnitTestCase {
 		->setConstructorArgs( array( $notifier ) )
 		->getMock();
 		$this->publisher    = $this->getMockBuilder( Publisher::class )
-		->onlyMethods( array( 'update_services', 'update_location' ) )
+		->onlyMethods( array( 'update_services', 'update_locations' ) )
 		->disableOriginalConstructor()
 		->getMock();
 		$this->cron_handler = new Cron_Handler( $this->scheduler, $this->publisher );
@@ -84,7 +84,7 @@ class Test_Cron_Handler extends WP_UnitTestCase {
 	public function data_hooks_and_callbacks() {
 		return array(
 			'save service cpt'  => array( 'save_post_services', 'schedule_services_update' ),
-			'save location cpt' => array( 'save_post_location', 'schedule_locations_update' ),
+			'save location cpt' => array( 'save_post_locations', 'schedule_locations_update' ),
 		);
 	}
 
@@ -98,7 +98,7 @@ class Test_Cron_Handler extends WP_UnitTestCase {
 		$this->cron_handler->wire_callbacks();
 		$this->scheduler->expects( $this->once() )
 		->method( $method );
-		$post_types = array( 'services', 'location' );
+		$post_types = array( 'services', 'locations' );
 		foreach ( $post_types as $post_type ) {
 			self::factory()->post->create( array( 'post_type' => $post_type ) );
 		}
