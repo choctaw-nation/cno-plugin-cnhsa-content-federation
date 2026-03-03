@@ -58,15 +58,47 @@ class Plugin_Loader {
 					'app_password' => '',
 				),
 			),
-			'instructions' => "Create an application password in your profile and paste it here.\nVisit Users → Profile → Application Passwords.",
 		);
 
+		// If the option does not exist, add the full defaults.
 		if ( false === get_option( self::OPTION_KEY, false ) ) {
 			add_option( self::OPTION_KEY, $defaults );
 		} else {
+			// Read existing option and normalize to match the shape produced
+			// by the AdminScreen Rest_Router (validate envs and ensure
+			// credential keys exist per environment).
 			$opts = get_option( self::OPTION_KEY, array() );
-			$opts = wp_parse_args( $opts, $defaults );
-			update_option( self::OPTION_KEY, $opts );
+
+			$allowed = array( 'production', 'staging', 'development', 'local' );
+
+			// Normalize selected environments
+			$environments = array();
+			if ( isset( $opts['environments'] ) && is_array( $opts['environments'] ) ) {
+				foreach ( $opts['environments'] as $val ) {
+					$val = sanitize_text_field( $val );
+					if ( in_array( $val, $allowed, true ) ) {
+						$environments[] = $val;
+					}
+				}
+			}
+
+			// Normalize credentials: ensure each allowed environment has
+			// a `username` and `app_password` key (preserve existing values).
+			$credentials = array();
+			$raw_creds   = ( isset( $opts['credentials'] ) && is_array( $opts['credentials'] ) ) ? $opts['credentials'] : array();
+			foreach ( $allowed as $env ) {
+				$credentials[ $env ] = array(
+					'username'     => isset( $raw_creds[ $env ]['username'] ) ? sanitize_text_field( $raw_creds[ $env ]['username'] ) : '',
+					'app_password' => isset( $raw_creds[ $env ]['app_password'] ) ? sanitize_text_field( $raw_creds[ $env ]['app_password'] ) : '',
+				);
+			}
+
+			$normalized = array(
+				'environments' => $environments,
+				'credentials'  => $credentials,
+			);
+
+			update_option( self::OPTION_KEY, $normalized );
 		}
 		flush_rewrite_rules();
 	}
@@ -116,13 +148,45 @@ class Plugin_Loader {
 	private function wire_cron_hook_callbacks() {
 		$notifier                 = new Notifier( array( 'kroelke@choctawnation.com', 'bperkins@choctawnation.com' ) );
 		$scheduler                = new Scheduler( $notifier );
-		$environment              = wp_get_environment_type();
-		$gateway                  = new Transport\HTTP_Gateway( $environment, $notifier );
+		$target_environment       = $this->get_target_environment();
+		$gateway                  = new Transport\HTTP_Gateway( $target_environment, $notifier );
 		$service_payload_factory  = new WP\Payload\Service_Payload_Factory();
 		$location_payload_factory = new WP\Payload\Location_Payload_Factory();
 		$id_resolver              = new ID_Resolver();
 		$publisher                = new WP\Publisher( $id_resolver, $gateway, $service_payload_factory, $location_payload_factory, $notifier );
 		$cron                     = new Cron_Handler( $scheduler, $publisher );
 		$cron->wire_callbacks();
+	}
+
+	/**
+	 * Get the target environment based on saved options and available credentials
+	 */
+	private function get_target_environment(): string {
+		$opts    = get_option( self::OPTION_KEY, array() );
+		$allowed = array( 'production', 'staging', 'development', 'local' );
+		$env     = '';
+		if ( isset( $opts['environments'] ) && is_array( $opts['environments'] ) ) {
+			foreach ( $opts['environments'] as $val ) {
+				$val = sanitize_text_field( $val );
+				if ( in_array( $val, $allowed, true ) ) {
+					$env = $val;
+				}
+			}
+		}
+
+		// Normalize credentials: ensure each allowed environment has
+		// a `username` and `app_password` key (preserve existing values).
+		$raw_creds   = ( isset( $opts['credentials'] ) && is_array( $opts['credentials'] ) ) ? $opts['credentials'] : array();
+		$credentials = array(
+			'username'     => isset( $raw_creds[ $env ]['username'] ) ? sanitize_text_field( $raw_creds[ $env ]['username'] ) : '',
+			'app_password' => isset( $raw_creds[ $env ]['app_password'] ) ? sanitize_text_field( $raw_creds[ $env ]['app_password'] ) : '',
+		);
+		if ( empty( $credentials['username'] ) || empty( $credentials['app_password'] ) ) {
+			_doing_it_wrong( __METHOD__, 'Missing credentials for the selected environment.', '1.0.0' );
+		}
+		if ( 'production' === $env && 'production' !== wp_get_environment_type() ) {
+			_doing_it_wrong( __METHOD__, 'Production environment can only be used on production sites.', '1.0.0' );
+		}
+		return $env;
 	}
 }

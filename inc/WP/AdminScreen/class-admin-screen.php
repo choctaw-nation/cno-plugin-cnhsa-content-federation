@@ -131,20 +131,28 @@ class Admin_Screen {
 		if ( 'cnhsa-federation_page_cnhsa-federation-settings' !== $hook_suffix ) {
 			return;
 		}
+
 		$asset_file         = require_once dirname( __DIR__, 3 ) . '/build/index.asset.php';
 		$plugin_assets_path = dirname( __DIR__, 2 );
+		$asset_name         = 'cnhsa-federation-admin';
 		wp_enqueue_script(
-			'cnhsa-federation-admin',
+			$asset_name,
 			plugin_dir_url( $plugin_assets_path ) . 'build/index.js',
 			$asset_file['dependencies'],
 			$asset_file['version'],
-			array( 'strategy' => 'defer' )
+			array(
+				'strategy' => 'defer',
+			)
 		);
 		wp_enqueue_style(
-			'cnhsa-federation-admin',
+			$asset_name,
 			plugin_dir_url( $plugin_assets_path ) . 'build/index.css',
 			array(),
 			$asset_file['version']
+		);
+		wp_add_inline_script(
+			$asset_name,
+			'const cnhsaFederationSettings = ' . wp_json_encode( array( 'environment' => wp_get_environment_type() ) )
 		);
 	}
 

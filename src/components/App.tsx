@@ -1,12 +1,14 @@
 import apiFetch from '@wordpress/api-fetch';
 import {
 	Notice,
-	ToggleControl,
+	SelectControl,
 	Panel,
 	Button,
 	Flex,
 	TextControl,
+	PanelBody,
 } from '@wordpress/components';
+import { useState } from '@wordpress/element';
 import useOptions from '../hooks/useOptions';
 import TargetCredentials from './TargetCredentials';
 
@@ -26,6 +28,14 @@ export default function App( { restUrl, nonce }: Props ) {
 		errors,
 		setErrors,
 	} = useOptions( restUrl );
+	const [ credentialsPanelTitle, setCredentialsPanelTitle ] = useState(
+		options?.environments && options.environments.length > 0
+			? `${
+					options.environments[ 0 ].charAt( 0 ).toUpperCase() +
+					options.environments[ 0 ].slice( 1 )
+			  } Federation Credentials`
+			: 'Federation Credentials'
+	);
 
 	if ( errors ) {
 		return <Notice status="error">{ errors }</Notice>;
@@ -34,26 +44,25 @@ export default function App( { restUrl, nonce }: Props ) {
 	if ( ! options ) {
 		return <p>Loading…</p>;
 	}
-
-	const toggleEnv = ( key: string ) => {
-		const list = new Set( options.environments || [] );
-		if ( list.has( key ) ) list.delete( key );
-		else list.add( key );
-		setOptions( { ...options, environments: Array.from( list ) } );
-	};
-
-	const validate = (): boolean => {
-		// basic validation: no fields required but app_password recommended
-		return true;
-	};
+	const selectOptions = [
+		{
+			label: 'Choose a target environment',
+			value: '',
+		},
+		{
+			label: 'Production',
+			value: 'production',
+		},
+		{ label: 'Staging', value: 'staging' },
+		{
+			label: 'Development',
+			value: 'development',
+		},
+		{ label: 'Local', value: 'local' },
+	];
 
 	const onSubmit = async ( e: any ) => {
 		e.preventDefault();
-		if ( ! validate() ) {
-			setMessage( null );
-			setErrors( 'Validation failed' );
-			return;
-		}
 		setSaving( true );
 		setMessage( null );
 		setErrors( null );
@@ -84,35 +93,55 @@ export default function App( { restUrl, nonce }: Props ) {
 			>
 				{ message && <Notice status="success">{ message }</Notice> }
 				{ errors && <Notice status="error">{ errors }</Notice> }
-				<Panel header="Federation Targets">
-					<Flex
-						gap={ 2 }
-						direction="column"
-						style={ { padding: '1rem' } }
-					>
-						<p>
+				<Panel header="Federation Settings">
+					<PanelBody title="Target Environments" initialOpen={ true }>
+						<p
+							style={ {
+								marginBottom:
+									cnhsaFederationSettings.environment !==
+									'production'
+										? '.5rem'
+										: undefined,
+							} }
+						>
 							Select which CNHSA environments you want to push
-							content to.
+							content to.{ ' ' }
 						</p>
-						{ [
-							'production',
-							'staging',
-							'development',
-							'local',
-						].map( ( env ) => (
-							<ToggleControl
-								__nextHasNoMarginBottom
-								key={ env }
-								label={
-									env.charAt( 0 ).toUpperCase() +
-									env.slice( 1 )
-								}
-								checked={ (
-									options.environments || []
-								).includes( env ) }
-								onChange={ () => toggleEnv( env ) }
-							/>
-						) ) }
+						{ cnhsaFederationSettings.environment !==
+							'production' && (
+							<p style={ { marginTop: 0 } }>
+								<i>
+									The production target environment is only
+									available on production environments.
+								</i>
+							</p>
+						) }
+						<SelectControl
+							__next40pxDefaultSize
+							__nextHasNoMarginBottom
+							label="Target Environment"
+							value={ ( options.environments || [] )[ 0 ] || '' }
+							options={ selectOptions.filter( ( option ) =>
+								cnhsaFederationSettings.environment ===
+								'production'
+									? true
+									: option.value !== 'production'
+							) }
+							onChange={ ( val ) => {
+								setOptions( {
+									...options,
+									environments: val ? [ val ] : [],
+								} );
+								setCredentialsPanelTitle(
+									val
+										? `${
+												val.charAt( 0 ).toUpperCase() +
+												val.slice( 1 )
+										  } Federation Credentials`
+										: 'Federation Credentials'
+								);
+							} }
+						/>
 						{ ( options.environments || [] ).includes(
 							'local'
 						) && (
@@ -134,26 +163,30 @@ export default function App( { restUrl, nonce }: Props ) {
 								/>
 							</div>
 						) }
-					</Flex>
+					</PanelBody>
+					{ options.environments &&
+						options.environments.length > 0 && (
+							<PanelBody
+								title={ credentialsPanelTitle }
+								initialOpen={ true }
+							>
+								{ options.environments &&
+									options.environments.length > 0 &&
+									options.environments.map( ( env ) => (
+										<TargetCredentials
+											key={ env }
+											env={ env }
+											label={
+												env.charAt( 0 ).toUpperCase() +
+												env.slice( 1 )
+											}
+											options={ options }
+											setOptions={ setOptions }
+										/>
+									) ) }
+							</PanelBody>
+						) }
 				</Panel>
-				{ options.environments && options.environments.length > 0 && (
-					<Panel header="Federation Credentials">
-						{ options.environments &&
-							options.environments.length > 0 &&
-							options.environments.map( ( env ) => (
-								<TargetCredentials
-									key={ env }
-									env={ env }
-									label={
-										env.charAt( 0 ).toUpperCase() +
-										env.slice( 1 )
-									}
-									options={ options }
-									setOptions={ setOptions }
-								/>
-							) ) }
-					</Panel>
-				) }
 			</Flex>
 			<Button
 				loading={ saving ? 'true' : 'false' }

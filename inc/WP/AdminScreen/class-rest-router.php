@@ -7,7 +7,6 @@
 
 namespace ChoctawNation\CNHSA_Federation\WP\AdminScreen;
 
-use Dom\Text;
 use WP_REST_Controller;
 use WP_REST_Server;
 use WP_Error;
@@ -46,7 +45,6 @@ class Rest_Router extends WP_REST_Controller {
 	public function __construct( string $option_key, string $transient_key ) {
 		$this->option_key    = $option_key;
 		$this->transient_key = $transient_key;
-		parent::__construct();
 	}
 
 	/**

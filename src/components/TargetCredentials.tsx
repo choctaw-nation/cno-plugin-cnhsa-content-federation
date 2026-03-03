@@ -36,35 +36,33 @@ export default function TargetCredentials( {
 		};
 
 	return (
-		<PanelBody title={ label } initialOpen={ true }>
-			<Flex direction="column" gap={ 4 }>
-				<FlexBlock>
-					<TextControl
-						__next40pxDefaultSize
-						__nextHasNoMarginBottom
-						label="Username"
-						value={ creds.username || '' }
-						onChange={ onChange( 'username' ) }
-					/>
-				</FlexBlock>
-				<FlexBlock>
-					<TextControl
-						__next40pxDefaultSize
-						__nextHasNoMarginBottom
-						label="Application Password"
-						value={ creds.app_password || '' }
-						onChange={ onChange( 'app_password' ) }
-					/>
-					<a
-						href={ `${
-							envUrls[ env as keyof typeof envUrls ]
-						}/wp-admin/profile.php#application-passwords` }
-						target="_blank"
-					>
-						Create an application password
-					</a>
-				</FlexBlock>
-			</Flex>
-		</PanelBody>
+		<Flex direction="column" gap={ 4 }>
+			<FlexBlock>
+				<TextControl
+					__next40pxDefaultSize
+					__nextHasNoMarginBottom
+					label="Username"
+					value={ creds.username || '' }
+					onChange={ onChange( 'username' ) }
+				/>
+			</FlexBlock>
+			<FlexBlock>
+				<TextControl
+					__next40pxDefaultSize
+					__nextHasNoMarginBottom
+					label="Application Password"
+					value={ creds.app_password || '' }
+					onChange={ onChange( 'app_password' ) }
+				/>
+				<a
+					href={ `${
+						envUrls[ env as keyof typeof envUrls ]
+					}/wp-admin/profile.php#application-passwords` }
+					target="_blank"
+				>
+					Create an application password
+				</a>
+			</FlexBlock>
+		</Flex>
 	);
 }

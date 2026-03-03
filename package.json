@@ -25,6 +25,7 @@
 		"start": "wp-scripts start"
 	},
 	"devDependencies": {
+		"@wordpress/api-fetch": "^7.40.0",
 		"@wordpress/base-styles": "^6.16.0",
 		"@wordpress/components": "^32.2.0",
 		"@wordpress/scripts": "^31.5.0"
