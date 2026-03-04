@@ -138,7 +138,7 @@ class Publisher {
 		if ( 'services' === $post->post_type ) {
 			return is_null( $location_payload ) ? $service_payload : array_merge( $service_payload, array( 'location_data' => $location_payload ) );
 		} elseif ( 'locations' === $post->post_type ) {
-			return $location_payload;
+			return $location_payload[0];
 		} else {
 			return new WP_Error( 'invalid_post_type', 'Unsupported post type for payload creation.' );
 		}
