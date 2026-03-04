@@ -11,8 +11,8 @@
 		"inc/",
 		"cno-plugin-cnhsa-content-federation.php",
 		"README.md",
-		"CHANGELOG.md",
 		"build/",
+		"LICENSE",
 		"vendor/"
 	],
 	"scripts": {
@@ -25,9 +25,9 @@
 		"start": "wp-scripts start"
 	},
 	"devDependencies": {
-		"@wordpress/api-fetch": "^7.40.0",
-		"@wordpress/base-styles": "^6.16.0",
-		"@wordpress/components": "^32.2.0",
-		"@wordpress/scripts": "^31.5.0"
+		"@wordpress/api-fetch": "^7.41.0",
+		"@wordpress/base-styles": "^6.17.0",
+		"@wordpress/components": "^32.3.0",
+		"@wordpress/scripts": "^31.6.0"
 	}
 }
