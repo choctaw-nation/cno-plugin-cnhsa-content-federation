@@ -79,6 +79,7 @@ class Test_Location_Payload_Factory extends WP_UnitTestCase {
 		$this->assertCount( 1, $payload );
 
 		$entry = $payload[0];
+		$this->assertArrayHasKey( 'location_type', $entry );
 		$this->assertArrayHasKey( 'cno_location_id', $entry );
 		$this->assertEquals( $location->ID, $entry['cno_location_id'] );
 		$this->assertEquals( '123 Main St', $entry['address'] );

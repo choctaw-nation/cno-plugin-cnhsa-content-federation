@@ -42,6 +42,7 @@ class Location_Payload_Factory extends Payload_Factory {
 		$location_data = array();
 		foreach ( $locations as $location ) {
 			$data            = array(
+				'location_type'           => get_field( 'choctaw_or_external_location', $location->ID ),
 				'cno_location_id'         => $location->ID,
 				'location_name'           => $location->post_title,
 				'address'                 => get_field( 'address', $location->ID ),
