@@ -2,6 +2,8 @@
 
 This plugin creates a two-way street, in conjunction with its sibling plugin, for federating content between the CNO and CNHSA sites. It is exclusively for use on the Choctaw Nation site.
 
+**Github Pages shows test coverage**
+
 ## Quick Dev Notes
 
 -   This plugin uses classmap autoloading, meaning **each time you add a new class, you must run `composer dump-autoload` to load it.**

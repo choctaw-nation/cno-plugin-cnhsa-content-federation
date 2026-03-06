@@ -1,7 +1,7 @@
 name: Deploy and Release
 on:
     push:
-        branches: [main, dev]
+        branches: [main]
 
 permissions:
     contents: write

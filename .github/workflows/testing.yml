@@ -2,8 +2,12 @@ name: Testing
 
 on:
   pull_request:
-    branches:
-      - main
+    branches: [main]
+    types: [opened, synchronize, reopened, ready_for_review]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 jobs:
   phpunit:
@@ -11,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        php-version: ["8.2", "8.0", "7.4"]
+        php-versions: ["8.2", "8.4"]
     services:
       database:
         image: mysql:latest
@@ -24,27 +28,57 @@ jobs:
       - name: Check out source code
         uses: actions/checkout@v4
 
+      - name: Install SVN
+        run: sudo apt-get update && sudo apt-get install -y subversion
+
+      - name: Install Composer
+        run: |
+          EXPECTED_SIGNATURE="$(wget -q -O - https://composer.github.io/installer.sig)"
+          php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');"
+          ACTUAL_SIGNATURE="$(php -r "echo hash_file('sha384', 'composer-setup.php');")"
+          if [ "$EXPECTED_SIGNATURE" != "$ACTUAL_SIGNATURE" ]; then
+            >&2 echo 'ERROR: Invalid installer signature'
+            rm composer-setup.php
+            exit 1
+          fi
+          php composer-setup.php --quiet
+          rm composer-setup.php
+          mv composer.phar /usr/local/bin/composer
+
+      - name: Install Composer dependencies
+        run: composer install --no-interaction --prefer-dist
+
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: $
+          php-version: ${{ matrix.php-versions }}
           tools: phpunit-polyfills:1.1
 
       - name: Setup tests
-        run: bash bin/install-wp-tests.sh wordpress_tests root root 127.0.0.1 latest true
+        run: bash bin/gh-install-wp-tests.sh wordpress_tests root root 127.0.0.1 latest true
 
       - name: Run tests
         run: phpunit
+
+      - name: Upload HTML Coverage Artifact
+        if: matrix.php-versions == '8.2'
+        uses: actions/upload-artifact@v4
+        with:
+          name: html-coverage
+          path: html-coverage
 
   # Deploy HTML coverage to GitHub Pages after tests pass on main
   deploy-coverage:
     name: Deploy HTML Coverage to GitHub Pages
     needs: phpunit
     runs-on: ubuntu-latest
-    if: github.event.pull_request == null && github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/main'
     steps:
-      - name: Check out source code
-        uses: actions/checkout@v4
+      - name: Download HTML Coverage Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: html-coverage
+          path: html-coverage
 
       - name: Copy html-coverage to public
         run: |
@@ -56,4 +90,3 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./public
-          publish_branch: gh-pages
