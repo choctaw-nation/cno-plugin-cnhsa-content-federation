@@ -62,14 +62,23 @@ jobs:
       - name: Run tests
         run: phpunit
 
+      - name: Upload HTML Coverage Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: html-coverage
+          path: html-coverage
+
   # Deploy HTML coverage to GitHub Pages after tests pass on main
   deploy-coverage:
     name: Deploy HTML Coverage to GitHub Pages
     needs: phpunit
     runs-on: ubuntu-latest
     steps:
-      - name: Check out source code
-        uses: actions/checkout@v4
+      - name: Download HTML Coverage Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: html-coverage
+          path: html-coverage
 
       - name: Copy html-coverage to public
         run: |
