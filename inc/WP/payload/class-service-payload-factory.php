@@ -100,7 +100,7 @@ class Service_Payload_Factory extends Payload_Factory {
 				$is_link = false !== strpos( $data['file_or_link'], '_link' );
 				if ( $is_link ) {
 					$parsed['internal_link'] = null;
-					$parsed['external_link'] = $data['internal_link'];
+					$parsed['external_link'] = $data['internal_link'] ?? $data['external_link'];
 				} else {
 					$parsed['internal_link'] = null;
 					$parsed['external_link'] = $data['pdf'];
