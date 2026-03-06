@@ -1,7 +1,7 @@
 {
 	"name": "cno-plugin-cnhsa-content-federation",
-	"version": "0.2.0",
-	"description": "",
+	"version": "1.0.0",
+	"description": "The plugin for CNHSA content federation.",
 	"author": "Choctaw Nation of Oklahoma",
 	"license": "GPL-3.0-or-later",
 	"directories": {
