@@ -4,9 +4,10 @@
 	"description": "The plugin for CNHSA content federation.",
 	"author": "Choctaw Nation of Oklahoma",
 	"license": "GPL-3.0-or-later",
-	"directories": {
-		"test": "tests"
-	},
+	"prettier": "@wordpress/prettier-config",
+	"browserslist": [
+		"extends @wordpress/browserslist-config"
+	],
 	"files": [
 		"inc/",
 		"cno-plugin-cnhsa-content-federation.php",
@@ -25,9 +26,19 @@
 		"start": "wp-scripts start"
 	},
 	"devDependencies": {
+		"@eslint/compat": "^2",
+		"@eslint/eslintrc": "^3",
 		"@wordpress/api-fetch": "^7.41.0",
 		"@wordpress/base-styles": "^6.17.0",
 		"@wordpress/components": "^32.3.0",
-		"@wordpress/scripts": "^31.6.0"
+		"@wordpress/scripts": "^31.6.0",
+		"eslint": "^9",
+		"eslint-config-prettier": "^10",
+		"eslint-import-resolver-typescript": "^4",
+		"eslint-plugin-react-hooks": "^7",
+		"globals": "^17",
+		"stylelint": "^17",
+		"stylelint-config-standard-scss": "^17",
+		"stylelint-scss": "^7"
 	}
 }
