@@ -2,12 +2,10 @@ name: Testing
 
 on:
   pull_request:
-    branches:
-      - main
+    branches: [main, dev]
     types: [opened, synchronize, reopened, ready_for_review]
   push:
-    branches:
-      - main
+    branches: [main]
 
 jobs:
   phpunit:
