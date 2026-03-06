@@ -67,7 +67,6 @@ jobs:
     name: Deploy HTML Coverage to GitHub Pages
     needs: phpunit
     runs-on: ubuntu-latest
-    if: github.event.pull_request == null && github.ref == 'refs/heads/main'
     steps:
       - name: Check out source code
         uses: actions/checkout@v4
