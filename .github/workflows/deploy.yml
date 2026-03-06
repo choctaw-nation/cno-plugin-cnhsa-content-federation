@@ -1,0 +1,111 @@
+name: Deploy and Release
+on:
+    push:
+        branches: [main, dev]
+
+permissions:
+    contents: write
+
+# Cancel all previous workflow runs for the same branch that have not yet completed.
+concurrency:
+    group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+    cancel-in-progress: true
+
+jobs:
+    bundle:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@main
+
+            - name: Setup PHP with Composer
+              uses: shivammathur/setup-php@v2
+              with:
+                  php-version: "8.1"
+                  tools: composer
+
+            - name: Install Composer dependencies
+              run: composer install --no-dev --prefer-dist --no-interaction --no-progress --optimize-autoloader
+
+            - name: Setup Node.js
+              uses: actions/setup-node@main
+
+            - name: Install dependencies
+              run: npm ci
+
+            - name: Check if package-lock.json changed
+              id: pkglock
+              run: |
+                  if git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep -q '^package-lock.json$'; then
+                    echo "changed=true" >> $GITHUB_OUTPUT
+                  else
+                    echo "changed=false" >> $GITHUB_OUTPUT
+                  fi
+
+            - name: Try to download previous build artifact
+              if: steps.pkglock.outputs.changed == 'false'
+              id: getbuild
+              uses: actions/download-artifact@v4
+              with:
+                  name: bundle
+                  path: ./build
+              continue-on-error: true
+
+            - name: Check if build artifact exists
+              if: steps.pkglock.outputs.changed == 'false'
+              id: build_exists
+              run: |
+                  if [ -d "./build" ] && [ "$(ls -A ./build)" ]; then
+                    echo "found=true" >> $GITHUB_OUTPUT
+                  else
+                    echo "found=false" >> $GITHUB_OUTPUT
+                  fi
+
+            - name: Build Assets
+              if: steps.pkglock.outputs.changed == 'true' || steps.build_exists.outputs.found == 'false'
+              run: npm run build
+
+            - name: Upload Assets
+              uses: actions/upload-artifact@main
+              with:
+                  name: bundle
+                  path: "./build"
+
+            - name: Zip Plugin
+              run: npm run plugin-zip
+
+            - name: Upload Plugin
+              uses: actions/upload-artifact@main
+              with:
+                  name: plugin
+                  path: cno-plugin-cnhsa-content-federation.zip
+
+    deploy:
+        needs: bundle
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@main
+
+            - name: Download Plugin
+              uses: actions/download-artifact@main
+              with:
+                  name: plugin
+                  path: .
+
+            - name: Get version
+              id: version
+              run: |
+                  echo "VERSION=$(grep -Po 'Version: \K.*' cno-plugin-cnhsa-content-federation.php | xargs)" >> "$GITHUB_ENV"
+              shell: bash
+
+            - name: Create Release
+              uses: softprops/action-gh-release@v2
+              with:
+                  files: |
+                      cno-plugin-cnhsa-content-federation.zip
+                  token: ${{ secrets.GITHUB_TOKEN }}
+                  tag_name: v${{ env.VERSION }}
+                  name: v${{ env.VERSION }}
+                  generate_release_notes: true

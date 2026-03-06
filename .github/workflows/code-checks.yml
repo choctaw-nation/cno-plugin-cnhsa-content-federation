@@ -1,0 +1,52 @@
+name: Code Checks
+on:
+    pull_request:
+        types: [opened, synchronize, ready_for_review]
+    workflow_dispatch:
+
+concurrency:
+    group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+    cancel-in-progress: true
+
+jobs:
+    phpcs:
+        if: github.event.pull_request.draft == false
+        uses: choctaw-nation/shared-github-actions/.github/workflows/phpcs.yml@main
+
+    lint-style:
+        if: github.event.pull_request.draft == false
+        uses: choctaw-nation/shared-github-actions/.github/workflows/lint-if-changed.yml@main
+        with:
+            file_extensions: '\.(scss|css)$'
+            lint_command: bun run lint:css
+            setup_bun: true
+
+    lint-js:
+        if: github.event.pull_request.draft == false
+        uses: choctaw-nation/shared-github-actions/.github/workflows/lint-if-changed.yml@main
+        with:
+            file_extensions: '\.(js|jsx|ts|tsx)$'
+            lint_command: bun run lint:js
+            setup_bun: true
+
+    final-check:
+        needs: [phpcs, lint-style, lint-js]
+        runs-on: ubuntu-latest
+        if: always() && github.event.pull_request.draft == false
+        steps:
+            - name: Verify all checks passed
+              run: |
+                  results="${{ needs.phpcs.result }} ${{ needs.lint-style.result }} ${{ needs.lint-js.result }}"
+                  echo "Job results: $results"
+
+                  if [[ "$results" =~ failure ]]; then
+                    echo "❌ One or more checks failed."
+                    exit 1
+                  fi
+
+                  if [[ "$results" =~ cancelled ]]; then
+                    echo "⚠️ One or more checks were cancelled."
+                    exit 1
+                  fi
+
+                  echo "✅ All checks passed or were skipped."
