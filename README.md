@@ -1,6 +1,8 @@
 # CNHSA Content Federation
 
-This plugin creates a two-way street, in conjunction with its sibling plugin, for federating content between the CNO and CNHSA sites. It is exclusively for use on the Choctaw Nation site.
+This plugin creates a two-way street, in conjunction with its [sibling plugin](https://github.com/choctaw-nation/cno-plugin-cnhsa-content-federation), for federating content between the CNO and CNHSA sites. It is exclusively for use on the Choctaw Nation site.
+
+[View the Changelog](/CHANGELOG.md)
 
 **Github Pages shows test coverage**
 
