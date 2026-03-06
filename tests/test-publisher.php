@@ -1,6 +1,6 @@
 <?php
 /**
- * Service Federation Tests
+ * Publisher Tests
  *
  * @package ChoctawNation\CNHSA_Federation\Tests
  */
@@ -17,9 +17,9 @@ use WP_Error;
 use WP_UnitTestCase;
 
 /**
- * Class Test_Service_Federation
+ * Class Test_Publisher
  */
-class Test_Service_Federation extends WP_UnitTestCase {
+class Test_Publisher extends WP_UnitTestCase {
 	/**
 	 * Mock ID resolver
 	 *
@@ -226,7 +226,9 @@ class Test_Service_Federation extends WP_UnitTestCase {
 		$this->id_resolver->method( 'find_cnhsa_id' )->willReturn( 1 );
 		$this->location_payload_factory->method( 'create_payload' )->willReturn(
 			array(
-				'title' => 'Test Location',
+				array(
+					'title' => 'Test Location',
+				),
 			)
 		);
 		$this->gateway->expects( $this->once() )
@@ -249,7 +251,9 @@ class Test_Service_Federation extends WP_UnitTestCase {
 		$this->id_resolver->method( 'find_cnhsa_id' )->willReturn( 0 );
 		$this->location_payload_factory->method( 'create_payload' )->willReturn(
 			array(
-				'title' => 'Test Location',
+				array(
+					'title' => 'Test Location',
+				),
 			)
 		);
 		$this->gateway->expects( $this->once() )
