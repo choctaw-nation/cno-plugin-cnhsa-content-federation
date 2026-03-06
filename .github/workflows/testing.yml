@@ -35,3 +35,25 @@ jobs:
 
       - name: Run tests
         run: phpunit
+
+  # Deploy HTML coverage to GitHub Pages after tests pass on main
+  deploy-coverage:
+    name: Deploy HTML Coverage to GitHub Pages
+    needs: phpunit
+    runs-on: ubuntu-latest
+    if: github.event.pull_request == null && github.ref == 'refs/heads/main'
+    steps:
+      - name: Check out source code
+        uses: actions/checkout@v4
+
+      - name: Copy html-coverage to public
+        run: |
+          rm -rf public || true
+          cp -r html-coverage public
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./public
+          publish_branch: gh-pages
