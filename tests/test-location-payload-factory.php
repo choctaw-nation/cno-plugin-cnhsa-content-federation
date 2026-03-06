@@ -65,8 +65,9 @@ class Test_Location_Payload_Factory extends WP_UnitTestCase {
 				'post_title' => 'Test Location',
 			)
 		);
-
+		$image    = $this->factory->attachment->create_upload_object( __DIR__ . '/image-placeholder.jpg' );
 		// Set ACF fields for the location.
+		update_field( 'photo', $image, $location->ID );
 		update_field( 'address', '123 Main St', $location->ID );
 		update_field( 'city_state_zip', 'Testville, TS 12345', $location->ID );
 		update_field( 'phone_number', '555-0101', $location->ID );
@@ -86,6 +87,10 @@ class Test_Location_Payload_Factory extends WP_UnitTestCase {
 		$this->assertEquals( 'Testville, TS 12345', $entry['city_state_zip'] );
 		$this->assertEquals( '555-0101', $entry['phone_number'] );
 		$this->assertArrayHasKey( 'location_name', $entry );
+		$this->assertArrayHasKey( 'featured_image', $entry );
+		$this->assertIsArray( $entry['featured_image'] );
+		$this->assertArrayHasKey( 'src', $entry['featured_image'] );
+		$this->assertArrayHasKey( 'cno_image_id', $entry['featured_image'] );
 		$this->assertEquals( 'Test Location', $entry['location_name'] );
 	}
 }

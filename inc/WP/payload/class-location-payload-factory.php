@@ -55,7 +55,10 @@ class Location_Payload_Factory extends Payload_Factory {
 			if ( $featured_image_id ) {
 				$image_data = wp_get_attachment_image_src( $featured_image_id, 'full' );
 				if ( $image_data ) {
-					$data['photo_url'] = $image_data[0];
+					$data['featured_image'] = array(
+						'src'          => $image_data[0],
+						'cno_image_id' => $featured_image_id,
+					);
 				}
 			}
 			$location_data[] = $data;

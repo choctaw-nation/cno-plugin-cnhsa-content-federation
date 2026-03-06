@@ -4,9 +4,7 @@ This plugin creates a two-way street, in conjunction with its [sibling plugin](h
 
 [View the Changelog](/CHANGELOG.md)
 
-**Github Pages shows test coverage**
-
-**Github Pages shows test coverage**
+**GitHub Pages shows test coverage**
 
 ## Quick Dev Notes
 
