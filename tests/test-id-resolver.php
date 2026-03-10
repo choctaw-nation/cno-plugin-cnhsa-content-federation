@@ -89,11 +89,12 @@ class Test_ID_Resolver extends WP_UnitTestCase {
 	 */
 	public function data_service_http_filters(): array {
 		$successful_data = array(
-			array(
+			'data'    => array(
 				'id'    => 123,
 				'slug'  => 'test-service',
 				'title' => array( 'rendered' => 'Test Service' ),
 			),
+			'success' => true,
 		);
 
 		return array(
@@ -211,11 +212,11 @@ class Test_ID_Resolver extends WP_UnitTestCase {
 	 * @return array The sliced array of posts for the current page.
 	 */
 	private function paginate_posts( string $url ): array {
-		$params   = wp_parse_url( $url );
-		$query    = wp_parse_args( $params['query'] ?? '' );
-		$page     = (int) ( $query['page'] ?? 1 );
-		$per_page = (int) ( $query['per_page'] ?? 100 );
-		$posts    = array_map(
+		$params    = wp_parse_url( $url );
+		$query     = wp_parse_args( $params['query'] ?? '' );
+		$page      = (int) ( $query['page'] ?? 1 );
+		$per_page  = (int) ( $query['per_page'] ?? 100 );
+		$posts     = array_map(
 			function ( $post_id ) {
 				$post = get_post( $post_id );
 				return array(
@@ -226,7 +227,8 @@ class Test_ID_Resolver extends WP_UnitTestCase {
 			},
 			self::$dummy_posts
 		);
-		return array_slice( $posts, ( $page - 1 ) * $per_page, $per_page );
+		$paginated = array_slice( $posts, ( $page - 1 ) * $per_page, $per_page );
+		return array( 'data' => $paginated );
 	}
 
 	/**
