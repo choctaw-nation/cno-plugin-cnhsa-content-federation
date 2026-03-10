@@ -21,6 +21,13 @@ class HTTP_Gateway {
 	public string $base_url;
 
 	/**
+	 * Endpoint for the CNHSA API.
+	 *
+	 * @var string $endpoint
+	 */
+	public string $endpoint;
+
+	/**
 	 * Constructor.
 	 *
 	 * @param 'local'|'development'|'staging'|'production' $environment The environment type to determine the base URL.
@@ -32,7 +39,8 @@ class HTTP_Gateway {
 			'development' => 'https://healthclindev.wpenginepowered.com',
 			'local'       => get_transient( 'cnhsa_federation_local_url' ) ?: 'https://cnhsa.local', // phpcs:ignore Universal.Operators.DisallowShortTernary.Found
 		);
-		$this->base_url = ( $env_urls[ $environment ] ?? 'https://www.cnhsa.com' ) . '/wp-json/cnhsa/v1';
+		$this->base_url = ( $env_urls[ $environment ] ?? 'https://www.cnhsa.com' );
+		$this->endpoint = 'wp-json/cnhsa/v1';
 	}
 
 	/**
@@ -76,6 +84,7 @@ class HTTP_Gateway {
 					'Content-Type'  => 'application/json',
 					'Authorization' => 'Basic ' . $this->get_auth(),
 				),
+				'timeout' => 15,
 			)
 		);
 		$response_code = wp_remote_retrieve_response_code( $response );

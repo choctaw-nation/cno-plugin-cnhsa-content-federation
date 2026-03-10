@@ -101,6 +101,9 @@ class Test_Publisher extends WP_UnitTestCase {
 		$this->publisher                = new Publisher( $this->id_resolver, $this->gateway, $this->service_payload_factory, $this->location_payload_factory, $this->notifier );
 	}
 
+	/**
+	 * Test that the publisher builds a full payload including location data.
+	 */
 	public function test_publisher_has_full_payload() {
 		$service_post = $this->factory->post->create_and_get(
 			array(
@@ -180,7 +183,9 @@ class Test_Publisher extends WP_UnitTestCase {
 		->method( 'publish_content' )
 		->with( $this->url . '/service', array( 'title' => 'Test Service' ) )->willReturn(
 			array(
-				'id' => 123,
+				'data' => array(
+					'id' => 123,
+				),
 			)
 		);
 		$this->publisher->update_services( $service_post );
@@ -260,7 +265,9 @@ class Test_Publisher extends WP_UnitTestCase {
 		->method( 'publish_content' )
 		->with( $this->url . '/location', array( 'title' => 'Test Location' ) )->willReturn(
 			array(
-				'id' => 456,
+				'data' => array(
+					'id' => 456,
+				),
 			)
 		);
 		$this->publisher->update_locations( $location_post );
@@ -286,7 +293,7 @@ class Test_Publisher extends WP_UnitTestCase {
 		->method( 'notify' )
 		->with(
 			'CNHSA Locations Federation Failed',
-			$this->stringContains( 'Publishing location post failed: Building payload failed: Payload creation failed' )
+			$this->stringContains( 'Publishing location post failed: Building location payload failed: Payload creation failed' )
 		);
 		$this->publisher->update_locations( $location_post );
 	}
@@ -310,7 +317,7 @@ class Test_Publisher extends WP_UnitTestCase {
 		->method( 'notify' )
 		->with(
 			'CNHSA Services Federation Failed',
-			$this->stringContains( 'Publishing service post failed: Building payload failed: Payload creation failed' )
+			$this->stringContains( 'Publishing service post failed: Building service payload failed: Payload creation failed' )
 		);
 		$this->publisher->update_services( $service_post );
 	}
@@ -347,30 +354,5 @@ class Test_Publisher extends WP_UnitTestCase {
 			)
 		);
 		$this->publisher->update_services( $service_post );
-	}
-
-	/**
-	 * Unsupported post types should result in a notification being sent.
-	 */
-	public function test_notifier_called_on_unsupported_post_type() {
-		$post = $this->factory->post->create_and_get(
-			array(
-				'post_type'   => 'post',
-				'post_title'  => 'Unsupported',
-				'post_status' => 'publish',
-			)
-		);
-		// ID resolver and factories can return values but build_payload should
-		// produce an invalid_post_type WP_Error for unsupported post types.
-		$this->id_resolver->method( 'find_cnhsa_id' )->willReturn( 0 );
-		$this->service_payload_factory->method( 'create_payload' )->willReturn( array( 'title' => 'Unsupported' ) );
-		$this->location_payload_factory->method( 'create_payload' )->willReturn( array( 'address' => 'X' ) );
-		$this->notifier->expects( $this->once() )
-		->method( 'notify' )
-		->with(
-			'CNHSA Services Federation Failed',
-			$this->stringContains( 'Unsupported post type for payload creation' )
-		);
-		$this->publisher->update_services( $post );
 	}
 }

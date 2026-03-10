@@ -49,10 +49,10 @@ class ID_Resolver {
 		$paged = 1;
 		$found = array();
 		do {
-			++$paged;
 			$response = wp_remote_get(
-				"{$base_url}/wp/v2/services?_fields=id,title,slug&per_page=100&page={$paged}",
+				"{$base_url}/wp-json/wp/v2/services?_fields=id,title,slug&per_page=100&page={$paged}"
 			);
+			++$paged;
 			if ( is_wp_error( $response ) || 200 !== wp_remote_retrieve_response_code( $response ) ) {
 				$message = is_wp_error( $response ) ? $response->get_error_message() : 'Invalid response code';
 				throw new Exception( esc_textarea( $message ) );
@@ -69,11 +69,12 @@ class ID_Resolver {
 					return isset( $item['slug'] ) && $item['slug'] === $slug;
 				}
 			);
-		} while ( $paged < $pages && empty( $found ) );
+		} while ( $paged <= $pages && empty( $found ) );
 		if ( empty( $found ) ) {
 			return 0;
 		}
-		return (int) $found[0]['id'];
+		$found = array_shift( $found );
+		return (int) $found['id'];
 	}
 
 	/**
@@ -92,7 +93,7 @@ class ID_Resolver {
 			$paged = 1;
 			do {
 				$response = wp_remote_get(
-					"{$base_url}/wp/v2/{$post_type}?_fields=id,title,slug&per_page=100&page={$paged}",
+					"{$base_url}/wp-json/wp/v2/{$post_type}?_fields=id,title,slug&per_page=100&page={$paged}"
 				);
 				if ( is_wp_error( $response ) || 200 !== wp_remote_retrieve_response_code( $response ) ) {
 					$message = is_wp_error( $response ) ? $response->get_error_message() : 'Invalid response code';
@@ -121,6 +122,7 @@ class ID_Resolver {
 		if ( empty( $found ) ) {
 			return 0;
 		}
-		return (int) $found[0]['id'];
+		$found = array_shift( $found );
+		return (int) $found['id'];
 	}
 }
