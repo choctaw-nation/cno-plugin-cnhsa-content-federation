@@ -1,9 +1,10 @@
 # Changelog
 
-## v1.1.2 - [March 10, 2026]
+## v1.1.2 - [March 11, 2026]
 
 -   Fixed: ID Resolution uses Title instead of slug (slugs may differ across sites)
 -   Fixed: Publishing a service with a location also updates location's `cnhsa_id` meta field
+-   refactor: streamline error handling and payload construction in HTTP Gateway and Publisher
 
 ## v1.1.1
 
