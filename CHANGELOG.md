@@ -4,7 +4,8 @@
 
 -   Fixed: ID Resolution uses Title instead of slug (slugs may differ across sites)
 -   Fixed: Publishing a service with a location also updates location's `cnhsa_id` meta field
--   refactor: streamline error handling and payload construction in HTTP Gateway and Publisher
+-   Fixed: Choctaw Locations that aren't health facilities are now properly federated as "external locations"
+-   Refactored: streamline error handling and payload construction in HTTP Gateway and Publisher
 
 ## v1.1.1
 

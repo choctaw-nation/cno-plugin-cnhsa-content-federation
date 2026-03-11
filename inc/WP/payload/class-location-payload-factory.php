@@ -37,7 +37,6 @@ class Location_Payload_Factory extends Payload_Factory {
 		$location_data = array();
 		foreach ( $locations as $location ) {
 			$data     = array(
-				'location_type'           => get_field( 'choctaw_or_external_location', $location->ID ),
 				'cno_location_id'         => $location->ID,
 				'location_name'           => $location->post_title,
 				'address'                 => get_field( 'address', $location->ID ),
@@ -46,6 +45,15 @@ class Location_Payload_Factory extends Payload_Factory {
 				'additional_phone_number' => empty( get_field( 'additional_phone_number', $location->ID ) ) ? null : get_field( 'additional_phone_number', $location->ID ),
 				'fax_number'              => empty( get_field( 'fax_number', $location->ID ) ) ? null : get_field( 'fax_number', $location->ID ),
 			);
+			$is_choctaw_location = 'external' !== get_field( 'choctaw_or_external_location', $location->ID );
+			$location_type = get_field('type', $location->ID );
+			if (!$is_choctaw_location) {
+				$data['location_type'] = $location_type;
+			} else {
+				$data['location_type'] = 'Health Facility' !== $location_type ?'external': 'choctaw';
+			}
+			
+
 			$cnhsa_id = get_post_meta( $location->ID, 'cnhsa_id', true );
 			if ( ! empty( $cnhsa_id ) ) {
 				$data['cnhsa_id'] = (int) $cnhsa_id;
