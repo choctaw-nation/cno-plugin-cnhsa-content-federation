@@ -87,19 +87,16 @@ class Publisher {
 	 * @throws Exception If publishing the service fails.
 	 */
 	public function update_services( WP_Post $service_post ): void {
-		$service_url  = "{$this->gateway->base_url}/{$this->gateway->endpoint}/service";
-		$location_ids = array();
+		$service_url = "{$this->gateway->base_url}/{$this->gateway->endpoint}/service";
 		try {
-			$location_payloads = $this->build_location_payload( $service_post );
-			if ( ! empty( $location_payloads ) ) {
-				$locations = array_map(
-					function ( $location ) use ( &$location_ids ) {
-						$location_ids[] = (int) $location['cno_location_id'];
-						return get_post( $location['cno_location_id'] );
-					},
-					$location_payloads
-				);
-				foreach ( $locations as $location_post ) {
+			$location_payload = $this->build_location_payload( $service_post );
+			// update locations first
+			if ( ! empty( $location_payload ) ) {
+				foreach ( $location_payload as $location ) {
+					$location_post = get_post( $location['cno_location_id'] );
+					if ( ! $location_post ) {
+						continue;
+					}
 					$this->update_locations( $location_post );
 				}
 			}
@@ -109,8 +106,8 @@ class Publisher {
 			if ( is_wp_error( $service_payload ) ) {
 				throw new Exception( esc_textarea( 'Building service payload failed: ' . $service_payload->get_error_message() ) );
 			}
-			if ( ! empty( $location_ids ) ) {
-				$service_payload['location_data'] = $location_ids;
+			if ( ! empty( $location_payload ) ) {
+				$service_payload['location_data'] = $location_payload;
 			}
 			$service_data = $this->gateway->publish_content( $service_endpoint, $service_payload );
 			update_post_meta( $service_post->ID, 'cnhsa_id', $service_data['data']['id'] );
@@ -135,7 +132,9 @@ class Publisher {
 			}
 			$payload = $location_payload[0];
 			$data    = $this->gateway->publish_content( $url, $payload );
-			update_post_meta( $location_post->ID, 'cnhsa_id', $data['data']['id'] );
+			if ( ! is_null( $data['data'] ) && ! empty( $data['data']['id'] ) ) {
+				update_post_meta( $location_post->ID, 'cnhsa_id', $data['data']['id'] );
+			}
 		} catch ( Exception $e ) {
 			$this->notifier->notify( 'CNHSA Locations Federation Failed', esc_textarea( 'Publishing location post failed: ' . $e->getMessage() ) );
 		}
