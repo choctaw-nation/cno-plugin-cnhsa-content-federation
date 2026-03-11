@@ -5,7 +5,7 @@
  * Description:       Allows the CNO site to federate content to and from the CNHSA site.
  * Author:            Choctaw Nation of Oklahoma
  * Author URI:        https://www.choctawnation.com
- * Version:           1.1.1
+ * Version:           1.1.2
  * Requires at least: 6.0
  * Requires PHP:      8.0
  * Tested up to:      6.9.1
