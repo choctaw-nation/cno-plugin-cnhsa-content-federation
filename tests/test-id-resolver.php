@@ -72,8 +72,9 @@ class Test_ID_Resolver extends WP_UnitTestCase {
 	public function test_set_service_cnhsa_id_to_postmeta_via_api( $callback ) {
 		$service_post = $this->factory->post->create_and_get(
 			array(
-				'post_name' => 'test-service',
-				'post_type' => 'services',
+				'post_name'  => 'test-service-47',
+				'post_title' => 'Test Service',
+				'post_type'  => 'services',
 			)
 		);
 		HTTP_Requests::custom_callback_request( $callback );
@@ -124,8 +125,9 @@ class Test_ID_Resolver extends WP_UnitTestCase {
 	public function test_set_location_cnhsa_id_to_postmeta_via_api( $callback ) {
 		$location_post = $this->factory->post->create_and_get(
 			array(
-				'post_name' => 'test-location',
-				'post_type' => 'locations',
+				'post_name'  => 'test-location',
+				'post_type'  => 'locations',
+				'post_title' => 'Test Location',
 			)
 		);
 		HTTP_Requests::custom_callback_request( $callback );

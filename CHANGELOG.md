@@ -1,6 +1,13 @@
 # Changelog
 
-## v1.1.1 - [March 10, 2026]
+## v1.1.2 - [March 11, 2026]
+
+-   Fixed: ID Resolution uses Title instead of slug (slugs may differ across sites)
+-   Fixed: Publishing a service with a location also updates location's `cnhsa_id` meta field
+-   Fixed: Choctaw Locations that aren't health facilities are now properly federated as "external locations"
+-   Refactored: streamline error handling and payload construction in HTTP Gateway and Publisher
+
+## v1.1.1
 
 -   Fixed: ID Lookup now uses proper base_url
 -   Refactored: `Publisher::update_{$post_type}` logic refactored for more clarity in workflow

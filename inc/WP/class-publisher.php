@@ -56,6 +56,13 @@ class Publisher {
 	public Notifier $notifier;
 
 	/**
+	 * Location endpoint.
+	 *
+	 * @var string $location_endpoint
+	 */
+	public string $location_endpoint;
+
+	/**
 	 * Constructor
 	 *
 	 * @param ID_Resolver              $id_resolver              An instance of the ID_Resolver class to resolve post IDs.
@@ -70,27 +77,42 @@ class Publisher {
 		$this->service_payload_factory  = $service_payload_factory;
 		$this->location_payload_factory = $location_payload_factory;
 		$this->notifier                 = $notifier;
+		$this->location_endpoint        = "{$this->gateway->base_url}/{$this->gateway->endpoint}/location";
 	}
 
 	/**
 	 * Federate services post to CNHSA endpoint
 	 *
-	 * @param WP_Post $post The service post object to be published.
+	 * @param WP_Post $service_post The service post object to be published.
 	 * @throws Exception If publishing the service fails.
 	 */
-	public function update_services( WP_Post $post ): void {
-		$url = "{$this->gateway->base_url}/{$this->gateway->endpoint}/service";
+	public function update_services( WP_Post $service_post ): void {
+		$service_url = "{$this->gateway->base_url}/{$this->gateway->endpoint}/service";
 		try {
-			$id              = $this->id_resolver->find_cnhsa_id( $post->post_type, $post, $this->gateway->base_url );
-			$url            .= $id ? "/{$id}" : '';
-			$service_payload = $this->service_payload_factory->create_payload( $post );
+			$location_payload = $this->build_location_payload( $service_post );
+			// update locations first
+			if ( ! empty( $location_payload ) ) {
+				foreach ( $location_payload as $location ) {
+					$location_post = get_post( $location['cno_location_id'] );
+					if ( ! $location_post ) {
+						continue;
+					}
+					$this->update_locations( $location_post );
+				}
+			}
+			$id               = $this->id_resolver->find_cnhsa_id( $service_post->post_type, $service_post, $this->gateway->base_url );
+			$service_endpoint = $service_url . ( $id ? "/{$id}" : '' );
+			$service_payload  = $this->service_payload_factory->create_payload( $service_post );
 			if ( is_wp_error( $service_payload ) ) {
 				throw new Exception( esc_textarea( 'Building service payload failed: ' . $service_payload->get_error_message() ) );
 			}
-			$location_payload = $this->build_location_payload( $post );
-			$payload          = is_null( $location_payload ) ? $service_payload : array_merge( $service_payload, array( 'location_data' => $location_payload ) );
-			$data             = $this->gateway->publish_content( $url, $payload );
-			update_post_meta( $post->ID, 'cnhsa_id', $data['data']['id'] );
+			if ( ! empty( $location_payload ) ) {
+				$service_payload['location_data'] = $location_payload;
+			}
+			$service_data = $this->gateway->publish_content( $service_endpoint, $service_payload );
+			if ( isset( $service_data['data']['id'] ) && ! empty( $service_data['data']['id'] ) ) {
+				update_post_meta( $service_post->ID, 'cnhsa_id', $service_data['data']['id'] );
+			}
 		} catch ( Exception $e ) {
 			$this->notifier->notify( 'CNHSA Services Federation Failed', esc_textarea( 'Publishing service post failed: ' . $e->getMessage() ) );
 		}
@@ -99,21 +121,22 @@ class Publisher {
 	/**
 	 * Federate location post to CNHSA endpoint
 	 *
-	 * @param WP_Post $post The location post object to be published.
+	 * @param WP_Post $location_post The location post object to be published.
 	 * @throws Exception If publishing the location fails.
 	 */
-	public function update_locations( WP_Post $post ): void {
-		$url = "{$this->gateway->base_url}/{$this->gateway->endpoint}/location";
+	public function update_locations( WP_Post $location_post ): void {
 		try {
-			$id               = $this->id_resolver->find_cnhsa_id( $post->post_type, $post, $this->gateway->base_url );
-			$url             .= $id ? "/{$id}" : '';
-			$location_payload = $this->build_location_payload( $post );
+			$id               = $this->id_resolver->find_cnhsa_id( $location_post->post_type, $location_post, $this->gateway->base_url );
+			$url              = $this->location_endpoint . ( $id ? "/{$id}" : '' );
+			$location_payload = $this->build_location_payload( $location_post );
 			if ( is_null( $location_payload ) ) {
 				throw new Exception( esc_html( 'No location payload to publish.' ) );
 			}
 			$payload = $location_payload[0];
 			$data    = $this->gateway->publish_content( $url, $payload );
-			update_post_meta( $post->ID, 'cnhsa_id', $data['data']['id'] );
+			if ( isset( $data['data']['id'] ) && ! empty( $data['data']['id'] ) ) {
+				update_post_meta( $location_post->ID, 'cnhsa_id', $data['data']['id'] );
+			}
 		} catch ( Exception $e ) {
 			$this->notifier->notify( 'CNHSA Locations Federation Failed', esc_textarea( 'Publishing location post failed: ' . $e->getMessage() ) );
 		}

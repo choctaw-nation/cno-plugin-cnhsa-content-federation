@@ -93,4 +93,32 @@ class Test_Location_Payload_Factory extends WP_UnitTestCase {
 		$this->assertArrayHasKey( 'cno_image_id', $entry['featured_image'] );
 		$this->assertEquals( 'Test Location', $entry['location_name'] );
 	}
+
+	/**
+	 * Test that a Choctaw location with a non-Health Facility type is set to 'external'.
+	 */
+	public function test_choctaw_location_non_health_facility_sets_location_type_external() {
+		$location = $this->factory->post->create_and_get(
+			array(
+				'post_type'  => 'locations',
+				'post_title' => 'Choctaw Non-Health Location',
+			)
+		);
+		$image    = $this->factory->attachment->create_upload_object( __DIR__ . '/image-placeholder.jpg' );
+		// Set ACF fields for the location: choctaw location but type is not 'Health Facility'.
+		update_field( 'choctaw_or_external_location', 'choctaw', $location->ID );
+		update_field( 'type', 'Commerce', $location->ID );
+		update_field( 'photo', $image, $location->ID );
+		update_field( 'address', '456 Other St', $location->ID );
+		update_field( 'city_state_zip', 'Othercity, OC 67890', $location->ID );
+		update_field( 'phone_number', '555-0202', $location->ID );
+
+		$payload = $this->payload_factory->create_payload( $location );
+		$this->assertIsArray( $payload );
+		$this->assertCount( 1, $payload );
+
+		$entry = $payload[0];
+		$this->assertArrayHasKey( 'location_type', $entry );
+		$this->assertEquals( 'external', $entry['location_type'] );
+	}
 }

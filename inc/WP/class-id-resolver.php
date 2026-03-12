@@ -30,9 +30,9 @@ class ID_Resolver {
 			return $cnhsa_id;
 		}
 		if ( 'services' === $post_type ) {
-			$cnhsa_id = $this->find_cnhsa_service_id( $base_url, $post->post_name );
+			$cnhsa_id = $this->find_cnhsa_service_id( $base_url, get_the_title( $post ) );
 		} elseif ( 'locations' === $post_type ) {
-			$cnhsa_id = $this->find_cnhsa_location_id( $base_url, $post->post_name );
+			$cnhsa_id = $this->find_cnhsa_location_id( $base_url, get_the_title( $post ) );
 		}
 		return $cnhsa_id;
 	}
@@ -41,11 +41,11 @@ class ID_Resolver {
 	 * Resolves the CNHSA ID for a given post type and post ID by querying the CNHSA API.
 	 *
 	 * @param string $base_url The base URL of the CNHSA site to query.
-	 * @param string $slug The slug of the local post to find the corresponding CNHSA ID for.
+	 * @param string $title The title of the local post to find the corresponding CNHSA ID for.
 	 * @return int The CNHSA ID if found, or 0 if not found.
 	 * @throws Exception If the API request fails or returns an invalid response.
 	 */
-	public function find_cnhsa_service_id( string $base_url, string $slug ): int {
+	public function find_cnhsa_service_id( string $base_url, string $title ): int {
 		$paged = 1;
 		$found = array();
 		do {
@@ -65,8 +65,8 @@ class ID_Resolver {
 			}
 			$found = array_filter(
 				$data,
-				function ( $item ) use ( $slug ) {
-					return isset( $item['slug'] ) && $item['slug'] === $slug;
+				function ( $item ) use ( $title ) {
+					return isset( $item['title']['rendered'] ) && $item['title']['rendered'] === $title;
 				}
 			);
 		} while ( $paged <= $pages && empty( $found ) );
@@ -81,11 +81,11 @@ class ID_Resolver {
 	 * Resolves the CNHSA ID for a given post type and post ID by querying the CNHSA API.
 	 *
 	 * @param string $base_url The base URL of the CNHSA site to query.
-	 * @param string $slug      The slug of the local post to find the corresponding CNHSA ID for.
+	 * @param string $title      The title of the local post to find the corresponding CNHSA ID for.
 	 * @return int The CNHSA ID if found, or 0 if not found.
 	 * @throws Exception If the API request fails or returns an invalid response.
 	 */
-	public function find_cnhsa_location_id( string $base_url, string $slug ): int {
+	public function find_cnhsa_location_id( string $base_url, string $title ): int {
 		$found          = array();
 		$post_type_keys = array( 'clinic', 'additional-facility' );
 
@@ -109,8 +109,8 @@ class ID_Resolver {
 				}
 				$found = array_filter(
 					$data,
-					function ( $item ) use ( $slug ) {
-						return isset( $item['slug'] ) && $item['slug'] === $slug;
+					function ( $item ) use ( $title ) {
+						return isset( $item['title']['rendered'] ) && $item['title']['rendered'] === $title;
 					}
 				);
 				if ( ! empty( $found ) ) {

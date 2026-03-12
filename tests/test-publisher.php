@@ -102,16 +102,34 @@ class Test_Publisher extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test that the publisher builds a full payload including location data.
+	 * Test that when a service with multiple locations is published all locations' cnhsa_id postmeta fields are updated.
 	 */
-	public function test_publisher_has_full_payload() {
-		$service_post = $this->factory->post->create_and_get(
+	public function test_service_with_multiple_locations_updates_all_location_cnhsa_id_postmeta_fields() {
+		$service_post        = $this->factory->post->create_and_get(
 			array(
 				'post_type'   => 'services',
 				'post_title'  => 'Test Service',
 				'post_status' => 'publish',
 			)
 		);
+		$location_post1      = $this->factory->post->create_and_get(
+			array(
+				'post_type'   => 'locations',
+				'post_title'  => 'Test Location 1',
+				'post_status' => 'publish',
+			)
+		);
+		$location_post2      = $this->factory->post->create_and_get(
+			array(
+				'post_type'   => 'locations',
+				'post_title'  => 'Test Location 2',
+				'post_status' => 'publish',
+			)
+		);
+		$cnhsa_service_id    = 900;
+		$cnhsa_location_id_1 = 901;
+		$cnhsa_location_id_2 = 902;
+		$this->id_resolver->method( 'find_cnhsa_id' )->willReturnOnConsecutiveCalls( $cnhsa_location_id_1, $cnhsa_location_id_2, $cnhsa_service_id );
 		$this->service_payload_factory->method( 'create_payload' )->willReturn(
 			array(
 				'title' => 'Test Service',
@@ -119,23 +137,36 @@ class Test_Publisher extends WP_UnitTestCase {
 		);
 		$this->location_payload_factory->method( 'create_payload' )->willReturn(
 			array(
-				'address' => '123 Main St',
+				array(
+					'cno_location_id' => $location_post1->ID,
+					'title'           => 'Test Location 1',
+				),
+				array(
+					'cno_location_id' => $location_post2->ID,
+					'title'           => 'Test Location 2',
+				),
 			)
 		);
-		$this->gateway->expects( $this->once() )->method( 'publish_content' )->with(
-			$this->anything(),
-			$this->callback(
-				function ( $payload ) {
-					$this->assertIsArray( $payload );
-					$this->assertArrayHasKey( 'title', $payload );
-					$this->assertArrayHasKey( 'location_data', $payload );
-					$this->assertEquals( 'Test Service', $payload['title'] );
-					$this->assertEquals( '123 Main St', $payload['location_data']['address'] );
-					return true;
-				}
+		$this->gateway->method( 'publish_content' )->willReturnOnConsecutiveCalls(
+			array(
+				'data' => array(
+					'id' => $cnhsa_location_id_1,
+				),
+			),
+			array(
+				'data' => array(
+					'id' => $cnhsa_location_id_2,
+				),
+			),
+			array(
+				'data' => array(
+					'id' => $cnhsa_service_id,
+				),
 			)
 		);
 		$this->publisher->update_services( $service_post );
+		$this->assertEquals( $cnhsa_location_id_1, get_post_meta( $location_post1->ID, 'cnhsa_id', true ) );
+		$this->assertEquals( $cnhsa_location_id_2, get_post_meta( $location_post2->ID, 'cnhsa_id', true ) );
 	}
 
 	/**
@@ -354,5 +385,50 @@ class Test_Publisher extends WP_UnitTestCase {
 			)
 		);
 		$this->publisher->update_services( $service_post );
+	}
+
+	/**
+	 * Test that when a service with a single location is published the location's cnhsa_id postmeta field is updated.
+	 */
+	public function test_service_with_single_location_updates_location_cnhsa_id_postmeta_field() {
+		$service_post      = $this->factory->post->create_and_get(
+			array(
+				'post_type'   => 'services',
+				'post_title'  => 'Test Service',
+				'post_status' => 'publish',
+			)
+		);
+		$location_post     = $this->factory->post->create_and_get(
+			array(
+				'post_type'   => 'locations',
+				'post_title'  => 'Test Location',
+				'post_status' => 'publish',
+			)
+		);
+		$cnhsa_service_id  = 789;
+		$cnhsa_location_id = 456;
+		$this->id_resolver->method( 'find_cnhsa_id' )->willReturn( $cnhsa_service_id );
+		$this->service_payload_factory->method( 'create_payload' )->willReturn(
+			array(
+				'title' => 'Test Service',
+			)
+		);
+		$this->location_payload_factory->method( 'create_payload' )->willReturn(
+			array(
+				array(
+					'cno_location_id' => $location_post->ID,
+					'title'           => 'Test Location',
+				),
+			)
+		);
+		$this->gateway->method( 'publish_content' )->willReturn(
+			array(
+				'data' => array(
+					'id' => $cnhsa_location_id,
+				),
+			)
+		);
+		$this->publisher->update_services( $service_post );
+		$this->assertEquals( $cnhsa_location_id, get_post_meta( $location_post->ID, 'cnhsa_id', true ) );
 	}
 }

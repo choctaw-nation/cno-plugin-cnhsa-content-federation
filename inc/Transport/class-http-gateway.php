@@ -88,10 +88,10 @@ class HTTP_Gateway {
 			)
 		);
 		$response_code = wp_remote_retrieve_response_code( $response );
-		if ( is_wp_error( $response ) || 201 !== $response_code ) {
-			if ( is_wp_error( $response ) ) {
-				throw new Exception( esc_html( $response->get_error_message() ) );
-			}
+		if ( is_wp_error( $response ) ) {
+			throw new Exception( esc_html( $response->get_error_message() ) );
+		}
+		if ( $response_code < 200 || $response_code >= 400 ) {
 			$body          = json_decode( wp_remote_retrieve_body( $response ), true );
 			$code          = ! empty( $body['code'] ) ? $body['code'] : $response_code;
 			$error_message = ! empty( $body['message'] ) ? $body['message'] : ( $body['error'] ?? 'Unknown error' );
