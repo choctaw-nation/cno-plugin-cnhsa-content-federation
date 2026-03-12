@@ -110,7 +110,9 @@ class Publisher {
 				$service_payload['location_data'] = $location_payload;
 			}
 			$service_data = $this->gateway->publish_content( $service_endpoint, $service_payload );
-			update_post_meta( $service_post->ID, 'cnhsa_id', $service_data['data']['id'] );
+			if ( isset( $service_data['data']['id'] ) && ! empty( $service_data['data']['id'] ) ) {
+				update_post_meta( $service_post->ID, 'cnhsa_id', $service_data['data']['id'] );
+			}
 		} catch ( Exception $e ) {
 			$this->notifier->notify( 'CNHSA Services Federation Failed', esc_textarea( 'Publishing service post failed: ' . $e->getMessage() ) );
 		}
@@ -132,7 +134,7 @@ class Publisher {
 			}
 			$payload = $location_payload[0];
 			$data    = $this->gateway->publish_content( $url, $payload );
-			if ( ! is_null( $data['data'] ) && ! empty( $data['data']['id'] ) ) {
+			if ( isset( $data['data']['id'] ) && ! empty( $data['data']['id'] ) ) {
 				update_post_meta( $location_post->ID, 'cnhsa_id', $data['data']['id'] );
 			}
 		} catch ( Exception $e ) {
