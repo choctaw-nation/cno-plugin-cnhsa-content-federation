@@ -168,9 +168,14 @@ class Plugin_Loader {
 		if ( isset( $opts['environments'] ) && is_array( $opts['environments'] ) ) {
 			foreach ( $opts['environments'] as $val ) {
 				$val = sanitize_text_field( $val );
-				if ( in_array( $val, $allowed, true ) ) {
-					$env = $val;
+				if ( ! in_array( $val, $allowed, true ) ) {
+					continue;
 				}
+				if ( 'production' === $val && 'production' !== wp_get_environment_type() ) {
+					continue;
+				}
+				$env = $val;
+				break;
 			}
 		}
 
