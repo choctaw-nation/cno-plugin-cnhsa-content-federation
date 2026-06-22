@@ -36,7 +36,7 @@ class Location_Payload_Factory extends Payload_Factory {
 		}
 		$location_data = array();
 		foreach ( $locations as $location ) {
-			$data     = array(
+			$data                = array(
 				'cno_location_id'         => $location->ID,
 				'location_name'           => $location->post_title,
 				'address'                 => get_field( 'address', $location->ID ),
@@ -46,19 +46,19 @@ class Location_Payload_Factory extends Payload_Factory {
 				'fax_number'              => empty( get_field( 'fax_number', $location->ID ) ) ? null : get_field( 'fax_number', $location->ID ),
 			);
 			$is_choctaw_location = 'external' !== get_field( 'choctaw_or_external_location', $location->ID );
-			$location_type       = get_field( 'type', $location->ID );  
+			$location_type       = get_field( 'type', $location->ID );
 
-            if ( $is_choctaw_location ) {  
-                // Default Choctaw locations to 'choctaw', but treat non–Health Facility  
-                // types as external per business rules.  
-                $data['location_type'] = 'choctaw';  
-                if ( ! empty( $location_type ) && 'Health Facility' !== $location_type ) {  
-                    $data['location_type'] = 'external';  
-                }  
-            } else {  
-                // Locations explicitly marked as external are always 'external'.  
-                $data['location_type'] = 'external';  
-            }
+			if ( $is_choctaw_location ) {
+				// Default Choctaw locations to 'choctaw', but treat non–Health Facility
+				// types as external per business rules.
+				$data['location_type'] = 'choctaw';
+				if ( ! empty( $location_type ) && 'Health Facility' !== $location_type ) {
+					$data['location_type'] = 'external';
+				}
+			} else {
+				// Locations explicitly marked as external are always 'external'.
+				$data['location_type'] = 'external';
+			}
 			$cnhsa_id = get_post_meta( $location->ID, 'cnhsa_id', true );
 			if ( ! empty( $cnhsa_id ) ) {
 				$data['cnhsa_id'] = (int) $cnhsa_id;

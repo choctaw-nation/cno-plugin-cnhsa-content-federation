@@ -7,8 +7,9 @@
 @use "@wordpress/base-styles/default-custom-properties";
 
 .components-panel__header h2 {
-	@include mixins.heading-x-large();
+	@include mixins.heading-x-large;
 }
+
 h3 {
-	@include mixins.heading-large();
+	@include mixins.heading-large;
 }

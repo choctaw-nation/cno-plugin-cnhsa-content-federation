@@ -121,6 +121,9 @@ class Scheduler {
 		if ( 'services' === $post->post_type && ! has_term( 12, 'category', $post ) ) {
 			$should_skip = true;
 		}
+		if ( 'locations' === $post->post_type && 'Health Facility' !== get_post_meta( $post->ID, 'type', true ) ) {
+			$should_skip = true;
+		}
 		return $should_skip;
 	}
 }

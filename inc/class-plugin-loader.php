@@ -149,7 +149,7 @@ class Plugin_Loader {
 		$notifier                 = new Notifier( array( 'kroelke@choctawnation.com', 'bperkins@choctawnation.com' ) );
 		$scheduler                = new Scheduler( $notifier );
 		$target_environment       = $this->get_target_environment();
-		$gateway                  = new Transport\HTTP_Gateway( $target_environment, $notifier );
+		$gateway                  = new Transport\HTTP_Gateway( $target_environment );
 		$service_payload_factory  = new WP\Payload\Service_Payload_Factory();
 		$location_payload_factory = new WP\Payload\Location_Payload_Factory();
 		$id_resolver              = new ID_Resolver();
@@ -168,9 +168,14 @@ class Plugin_Loader {
 		if ( isset( $opts['environments'] ) && is_array( $opts['environments'] ) ) {
 			foreach ( $opts['environments'] as $val ) {
 				$val = sanitize_text_field( $val );
-				if ( in_array( $val, $allowed, true ) ) {
-					$env = $val;
+				if ( ! in_array( $val, $allowed, true ) ) {
+					continue;
 				}
+				if ( 'production' === $val && 'production' !== wp_get_environment_type() ) {
+					continue;
+				}
+				$env = $val;
+				break;
 			}
 		}
 
@@ -183,9 +188,6 @@ class Plugin_Loader {
 		);
 		if ( empty( $credentials['username'] ) || empty( $credentials['app_password'] ) ) {
 			_doing_it_wrong( __METHOD__, 'Missing credentials for the selected environment.', '1.0.0' );
-		}
-		if ( 'production' === $env && 'production' !== wp_get_environment_type() ) {
-			_doing_it_wrong( __METHOD__, 'Production environment can only be used on production sites.', '1.0.0' );
 		}
 		return $env;
 	}

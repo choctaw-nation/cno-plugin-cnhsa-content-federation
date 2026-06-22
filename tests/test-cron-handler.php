@@ -8,7 +8,6 @@
 namespace ChoctawNation\CNHSA_Federation\Tests;
 
 use ChoctawNation\CNHSA_Federation\WP\Cron_Handler;
-use ChoctawNation\CNHSA_Federation\WP\ID_Resolver;
 use ChoctawNation\CNHSA_Federation\WP\Scheduler;
 use ChoctawNation\CNHSA_Federation\WP\Publisher;
 use WP_UnitTestCase;
@@ -34,7 +33,7 @@ class Test_Cron_Handler extends WP_UnitTestCase {
 	/**
 	 * Service Publisher instance for testing the wiring of hooks.
 	 *
-	 * @var Service_Publisher $service_publisher
+	 * @var Publisher $publisher
 	 */
 	private Publisher $publisher;
 

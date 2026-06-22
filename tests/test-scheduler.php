@@ -27,6 +27,7 @@ class Test_Scheduler extends WP_UnitTestCase {
 	public static function set_up_before_class() {
 		parent::set_up_before_class();
 		Test_Utils::setup_post_types();
+		ACF_Fields::register_fields( 'locations' );
 		self::factory()->term->create_many( 10, array( 'taxonomy' => 'category' ) );
 		// ensure category with term id 12 exists for testing
 		self::factory()->term->create(
@@ -78,6 +79,7 @@ class Test_Scheduler extends WP_UnitTestCase {
 				'post_title'  => 'Test Location',
 			)
 		);
+		update_field( 'type', 'Health Facility', $post->ID );
 		$this->scheduler->schedule_locations_update( $post->ID, $post, false );
 		$scheduled = wp_next_scheduled( $this->scheduler->cron_keys['locations']['update'], array( $post ) );
 		$this->assertNotFalse( $scheduled, 'Expected a scheduled event for creating a location post.' );
@@ -114,6 +116,24 @@ class Test_Scheduler extends WP_UnitTestCase {
 		$result = $this->scheduler->schedule_services_update( $post->ID, $post, true );
 		$this->assertNull( $result );
 		$scheduled = wp_next_scheduled( $this->scheduler->cron_keys['services']['update'], array( $post ) );
+		$this->assertFalse( $scheduled );
+	}
+
+	/**
+	 * Locations that are not of type 'Health Facility' should be skipped.
+	 */
+	public function test_locations_skipped_if_not_health_facility() {
+		$post = self::factory()->post->create_and_get(
+			array(
+				'post_type'   => 'locations',
+				'post_status' => 'publish',
+				'post_title'  => 'Not a Health Facility',
+			)
+		);
+		update_field( 'type', 'Judicial', $post->ID );
+		$result = $this->scheduler->schedule_locations_update( $post->ID, $post, false );
+		$this->assertNull( $result );
+		$scheduled = wp_next_scheduled( $this->scheduler->cron_keys['locations']['update'], array( $post ) );
 		$this->assertFalse( $scheduled );
 	}
 }
