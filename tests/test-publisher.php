@@ -74,7 +74,6 @@ class Test_Publisher extends WP_UnitTestCase {
 	 */
 	public static function set_up_before_class(): void {
 		parent::set_up_before_class();
-		Test_Utils::setup_federation_options();
 		Test_Utils::setup_post_types();
 	}
 

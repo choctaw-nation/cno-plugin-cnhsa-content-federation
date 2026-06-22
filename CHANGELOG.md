@@ -1,5 +1,10 @@
 # Changelog
 
+## v1.1.3 - [June 22, 2026]
+
+-   Fixed: Plugin no longer tries to federate locations with the wrong value selected
+-   Chore: Code Cleanup & packages update
+
 ## v1.1.2 - [March 11, 2026]
 
 -   Fixed: ID Resolution uses Title instead of slug (slugs may differ across sites)
