@@ -1,5 +1,11 @@
 # Changelog
 
+## v2.0.0 - [July 20, 2026]
+
+- Updated: Plugin name follows brackets namespace convention
+- Updated: Plugin now handles new ACF API from services upgrade
+- Chore: Packages updated.
+
 ## v1.1.3 - [June 22, 2026]
 
 -   Fixed: Plugin no longer tries to federate locations with the wrong value selected
