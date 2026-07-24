@@ -19,9 +19,9 @@ class Location_Payload_Factory extends Payload_Factory {
 	 * Builds the payload for location posts.
 	 *
 	 * @param WP_Post $post The location post objects.
-	 * @return array|WP_Error|null The payload array, a WP_Error on failure, or null if no payload is needed.
+	 * @return ?array The payload array, a WP_Error on failure, or null if no payload is needed.
 	 */
-	public function create_payload( WP_Post $post ): array|WP_Error|null {
+	public function create_payload( WP_Post $post ): ?array {
 		if ( 'locations' !== $post->post_type && 'services' !== $post->post_type ) {
 			return null;
 		}
@@ -30,7 +30,15 @@ class Location_Payload_Factory extends Payload_Factory {
 		 *
 		 * @var WP_Post[] $locations
 		 */
-		$locations = ( 'services' === $post->post_type ) ? get_field( 'location', $post->ID ) : array( $post );
+		$locations = array();
+		if ( 'services' === $post->post_type ) {
+			$location_data = get_field( 'service_location', $post->ID );
+			if ( is_array( $location_data ) && ! empty( $location_data ) ) {
+				$locations = $location_data['location'];
+			}
+		} elseif ( 'locations' === $post->post_type ) {
+			$locations = array( $post );
+		}
 		if ( empty( $locations ) ) {
 			return null;
 		}

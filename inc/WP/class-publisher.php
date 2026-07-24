@@ -12,7 +12,6 @@ use ChoctawNation\CNHSA_Federation\Transport\HTTP_Gateway;
 use ChoctawNation\CNHSA_Federation\WP\Payload\Location_Payload_Factory;
 use ChoctawNation\CNHSA_Federation\WP\Payload\Service_Payload_Factory;
 use Exception;
-use WP_Error;
 use WP_Post;
 
 /**
