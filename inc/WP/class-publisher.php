@@ -76,7 +76,7 @@ class Publisher {
 		$this->service_payload_factory  = $service_payload_factory;
 		$this->location_payload_factory = $location_payload_factory;
 		$this->notifier                 = $notifier;
-		$this->location_endpoint        = "{$this->gateway->base_url}/{$this->gateway->endpoint}/location";
+		$this->location_endpoint        = "{$this->gateway->base_url}/{$this->gateway->endpoint}/v1/location";
 	}
 
 	/**
@@ -86,7 +86,7 @@ class Publisher {
 	 * @throws Exception If publishing the service fails.
 	 */
 	public function update_services( WP_Post $service_post ): void {
-		$service_url = "{$this->gateway->base_url}/{$this->gateway->endpoint}/service";
+		$service_url = "{$this->gateway->base_url}/{$this->gateway->endpoint}/v2/service";
 		try {
 			$location_payload = $this->build_location_payload( $service_post );
 			// update locations first

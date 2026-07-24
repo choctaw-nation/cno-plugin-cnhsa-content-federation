@@ -40,7 +40,7 @@ class HTTP_Gateway {
 			'local'       => get_transient( 'cnhsa_federation_local_url' ) ?: 'https://cnhsa.local', // phpcs:ignore Universal.Operators.DisallowShortTernary.Found
 		);
 		$this->base_url = ( $env_urls[ $environment ] ?? 'https://www.cnhsa.com' );
-		$this->endpoint = 'wp-json/cnhsa/v1';
+		$this->endpoint = 'wp-json/cnhsa';
 	}
 
 	/**
