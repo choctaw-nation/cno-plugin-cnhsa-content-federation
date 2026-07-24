@@ -34,7 +34,7 @@
 		"lint:css": "npx stylelint '**/*.scss' '**/*.css' --fix",
 		"lint:js": "npx eslint --fix",
 		"packages-update": "wp-scripts packages-update",
-		"plugin-zip": "wp-scripts build && wp-scripts plugin-zip",
+		"plugin-zip": "npm run build && wp-scripts plugin-zip",
 		"start": "wp-scripts start"
 	},
 	"devDependencies": {
@@ -47,10 +47,8 @@
 		"@wordpress/eslint-plugin": "^25.4.1",
 		"@wordpress/scripts": "^32.4.1",
 		"eslint": "^9",
-		"eslint-config-prettier": "^10",
-		"eslint-import-resolver-typescript": "^4",
-		"eslint-plugin-react-hooks": "^7",
 		"globals": "^17",
+		"prettier": "npm:wp-prettier@^3",
 		"stylelint": "^17",
 		"stylelint-config-standard-scss": "^17",
 		"stylelint-scss": "^7"

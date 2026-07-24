@@ -40,8 +40,8 @@
 		}
 	],
 	"scripts": {
-		"phpcs": "phpcs inc/ --extensions=php",
-		"phpcbf": "phpcbf inc/ --extensions=php",
+		"phpcs": "phpcs . inc/ --extensions=php",
+		"phpcbf": "phpcbf . inc/ --extensions=php",
 		"test": "phpunit",
 		"install-tests": [
 			"chmod +x bin/local-mysql-socket.sh",
