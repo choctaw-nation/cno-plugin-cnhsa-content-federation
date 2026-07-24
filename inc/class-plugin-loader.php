@@ -12,6 +12,7 @@ use ChoctawNation\CNHSA_Federation\WP\Cron_Handler;
 use ChoctawNation\CNHSA_Federation\WP\ID_Resolver;
 use ChoctawNation\CNHSA_Federation\WP\Notifier;
 use ChoctawNation\CNHSA_Federation\WP\Scheduler;
+use WP_CLI;
 
 /**
  * Class Plugin_Loader
@@ -119,6 +120,12 @@ class Plugin_Loader {
 		add_action( 'rest_api_init', array( $this, 'load_required_rest_routes' ) );
 		$this->load_admin_screen();
 		$this->wire_cron_hook_callbacks();
+		if ( defined( 'WP_CLI' ) && WP_CLI ) {
+			WP_CLI::add_command(
+				'cno lock-service-blocks',
+				'ChoctawNation\CNHSA_Federation\WP\CLI\Lock_Service_Blocks_Command'
+			);
+		}
 	}
 
 	/**
