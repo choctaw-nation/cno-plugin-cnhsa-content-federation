@@ -32,7 +32,6 @@ class Service_Payload_Factory extends Payload_Factory {
 			'slug'          => $data->post_name,
 			'excerpt'       => ! empty( $data->post_excerpt ) ? $data->post_excerpt : get_field( 'archive_content', $post_id ),
 			'content'       => $data->post_content,
-			'blocks'        => parse_blocks( $data->post_content ),
 			'publish_date'  => $data->post_date,
 			'last_modified' => $data->post_modified,
 		);
