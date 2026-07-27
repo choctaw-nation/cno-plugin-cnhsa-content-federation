@@ -99,16 +99,18 @@ class Publisher {
 					$this->update_locations( $location_post );
 				}
 			}
-			$id               = $this->id_resolver->find_cnhsa_id( $service_post->post_type, $service_post, $this->gateway->base_url );
-			$service_endpoint = $service_url . ( $id ? "/{$id}" : '' );
-			$service_payload  = $this->service_payload_factory->create_payload( $service_post );
+			$id              = $this->id_resolver->find_cnhsa_id( $service_post->post_type, $service_post, $this->gateway->base_url );
+			$service_payload = $this->service_payload_factory->create_payload( $service_post );
+			if ( $id ) {
+				$service_payload['id'] = $id;
+			}
 			if ( is_wp_error( $service_payload ) ) {
 				throw new Exception( esc_textarea( 'Building service payload failed: ' . $service_payload->get_error_message() ) );
 			}
 			if ( ! empty( $location_payload ) ) {
 				$service_payload['location_data'] = $location_payload;
 			}
-			$service_data = $this->gateway->publish_content( $service_endpoint, $service_payload );
+			$service_data = $this->gateway->publish_content( $service_url, $service_payload );
 			if ( isset( $service_data['data']['id'] ) && ! empty( $service_data['data']['id'] ) ) {
 				update_post_meta( $service_post->ID, 'cnhsa_id', $service_data['data']['id'] );
 			}
