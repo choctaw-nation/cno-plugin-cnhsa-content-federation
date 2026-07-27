@@ -25,23 +25,21 @@ class Service_Payload_Factory extends Payload_Factory {
 		if ( 'services' !== $data->post_type ) {
 			return null;
 		}
-		$blocks_payload_factory = new Service_Blocks_Payload_Factory();
-		$post_id                = $data->ID;
-		$post_data              = array(
+		$post_id               = $data->ID;
+		$post_data             = array(
 			'title'         => $data->post_title,
 			'status'        => $data->post_status,
 			'slug'          => $data->post_name,
 			'excerpt'       => ! empty( $data->post_excerpt ) ? $data->post_excerpt : get_field( 'archive_content', $post_id ),
 			'content'       => $data->post_content,
-			'blocks'        => $blocks_payload_factory->create_payload(  $data->post_content  ),
+			'blocks'        => parse_blocks( $data->post_content ),
 			'publish_date'  => $data->post_date,
 			'last_modified' => $data->post_modified,
 		);
-		$additional_categories  = $this->add_additional_categories( $data->ID );
+		$additional_categories = $this->add_additional_categories( $data->ID );
 		if ( ! empty( $additional_categories ) ) {
 			$post_data['additional_categories'] = $additional_categories;
 		}
-
 		return $post_data;
 	}
 
@@ -83,27 +81,6 @@ class Service_Payload_Factory extends Payload_Factory {
 			$content[ $field ] = get_field( $field, $id );
 		}
 		return $content;
-	}
-
-	private function parse_blocks( string $content ): array {
-		$blocks          = parse_blocks( $content );
-		$filtered_blocks = array_filter(
-			$blocks,
-			function ( $block ) {
-				return ! empty( $block['blockName'] );
-			}
-		);
-		return array_map(
-			function ( $block ) {
-				return array(
-					'name'         => $block['blockName'],
-					'attrs'        => $block['attrs'] ?? array(),
-					'innerHTML'    => $block['innerHTML'] ?? '',
-					'innerContent' => $block['innerContent'] ?? array(),
-				);
-			},
-			$filtered_blocks
-		);
 	}
 
 	/**
