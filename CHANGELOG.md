@@ -1,6 +1,6 @@
 # Changelog
 
-## v2.0.0 - [July 20, 2026]
+## v2.0.0 - [July 27, 2026]
 
 -   Updated: Plugin name follows brackets namespace convention
 -   Updated: Plugin now handles new ACF API from services upgrade
