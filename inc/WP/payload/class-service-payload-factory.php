@@ -39,7 +39,6 @@ class Service_Payload_Factory extends Payload_Factory {
 		if ( ! empty( $additional_categories ) ) {
 			$post_data['additional_categories'] = $additional_categories;
 		}
-
 		return $post_data;
 	}
 
