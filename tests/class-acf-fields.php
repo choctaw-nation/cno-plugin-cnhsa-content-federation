@@ -1573,6 +1573,9 @@ class ACF_Fields {
 		);
 	}
 
+	/**
+	 * Registers the ACF fields for the Services post type in Gutenberg.
+	 */
 	private static function register_gutenberg_service_fields() {
 		acf_add_local_field_group(
 			array(

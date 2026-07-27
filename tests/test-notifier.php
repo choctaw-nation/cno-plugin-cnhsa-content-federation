@@ -56,7 +56,7 @@ class Test_Notifier extends WP_UnitTestCase {
 		$notifier = new \ChoctawNation\CNHSA_Federation\WP\Notifier();
 		add_filter(
 			'pre_wp_mail',
-			function ( $return, $args ) use ( $message ) {
+			function ( $_, $args ) use ( $message ) {
 				$this->assertEquals( esc_html( $message ), $args['message'] );
 				return $args;
 			},
