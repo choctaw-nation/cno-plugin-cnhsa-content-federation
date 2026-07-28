@@ -101,11 +101,11 @@ class Publisher {
 			}
 			$id              = $this->id_resolver->find_cnhsa_id( $service_post->post_type, $service_post, $this->gateway->base_url );
 			$service_payload = $this->service_payload_factory->create_payload( $service_post );
-			if ( $id ) {
-				$service_payload['id'] = $id;
-			}
 			if ( is_wp_error( $service_payload ) ) {
 				throw new Exception( esc_textarea( 'Building service payload failed: ' . $service_payload->get_error_message() ) );
+			}
+			if ( $id ) {
+				$service_payload['id'] = $id;
 			}
 			if ( ! empty( $location_payload ) ) {
 				$service_payload['location_data'] = $location_payload;

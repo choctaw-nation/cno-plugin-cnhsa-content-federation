@@ -19,7 +19,7 @@ class Location_Payload_Factory extends Payload_Factory {
 	 * Builds the payload for location posts.
 	 *
 	 * @param WP_Post $post The location post objects.
-	 * @return ?array The payload array, a WP_Error on failure, or null if no payload is needed.
+	 * @return ?array The payload array or null if no payload is needed.
 	 */
 	public function create_payload( WP_Post $post ): ?array {
 		if ( 'locations' !== $post->post_type && 'services' !== $post->post_type ) {

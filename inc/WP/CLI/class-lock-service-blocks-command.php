@@ -226,13 +226,6 @@ class Lock_Service_Blocks_Command {
 	 * @return int[]
 	 */
 	private function get_all_service_post_ids() {
-		$post_statuses = get_post_stati(
-			array(
-				'internal' => false,
-			),
-			'names'
-		);
-
 		return get_posts(
 			array(
 				'fields'         => 'ids',
