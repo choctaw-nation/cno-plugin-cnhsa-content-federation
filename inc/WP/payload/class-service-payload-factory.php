@@ -25,23 +25,21 @@ class Service_Payload_Factory extends Payload_Factory {
 		if ( 'services' !== $data->post_type ) {
 			return null;
 		}
-		$content               = $this->build_acf_field_data( $data->ID );
-		$rest_data             = array(
-			'title'     => $data->post_title,
-			'status'    => $data->post_status,
-			'slug'      => $data->post_name,
-			'excerpt'   => get_field(
-				'archive_content',
-				$data->ID
-			),
-			'post_data' => $content,
+		$post_id               = $data->ID;
+		$post_data             = array(
+			'title'         => $data->post_title,
+			'status'        => $data->post_status,
+			'slug'          => $data->post_name,
+			'excerpt'       => ! empty( $data->post_excerpt ) ? $data->post_excerpt : get_field( 'archive_content', $post_id ),
+			'content'       => $data->post_content,
+			'publish_date'  => $data->post_date,
+			'last_modified' => $data->post_modified,
 		);
 		$additional_categories = $this->add_additional_categories( $data->ID );
 		if ( ! empty( $additional_categories ) ) {
-			$rest_data['additional_categories'] = $additional_categories;
+			$post_data['additional_categories'] = $additional_categories;
 		}
-
-		return $rest_data;
+		return $post_data;
 	}
 
 	/**

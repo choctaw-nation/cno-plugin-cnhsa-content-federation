@@ -1,6 +1,6 @@
 {
 	"name": "cno-plugin-cnhsa-content-federation",
-	"version": "1.1.3",
+	"version": "2.0.0",
 	"description": "The plugin for CNHSA content federation.",
 	"author": "Choctaw Nation of Oklahoma",
 	"license": "GPL-3.0-or-later",
@@ -18,15 +18,15 @@
 	],
 	"engines": {
 		"node": ">= 24",
-		"npm": ">= 11"
+		"npm": ">= 12"
 	},
 	"allowScripts": {
-		"@parcel/watcher@2.5.6": true,
+		"@parcel/watcher@2.6.0": true,
 		"core-js@3.49.0": true,
-		"core-js-pure@3.48.0": true,
+		"core-js-pure@3.49.0": true,
 		"fsevents@2.3.3": true,
 		"fsevents@2.3.2": true,
-		"unrs-resolver@1.11.1": true
+		"unrs-resolver@1.12.2": true
 	},
 	"scripts": {
 		"build": "wp-scripts build",
@@ -34,23 +34,21 @@
 		"lint:css": "npx stylelint '**/*.scss' '**/*.css' --fix",
 		"lint:js": "npx eslint --fix",
 		"packages-update": "wp-scripts packages-update",
-		"plugin-zip": "wp-scripts build && wp-scripts plugin-zip",
+		"plugin-zip": "npm run build && wp-scripts plugin-zip",
 		"start": "wp-scripts start"
 	},
 	"devDependencies": {
 		"@eslint/compat": "^2",
-		"@wordpress/api-fetch": "^7.48.1",
-		"@wordpress/base-styles": "^10.0.1",
-		"@wordpress/components": "^35.0.1",
-		"@wordpress/dom-ready": "^4.48.1",
-		"@wordpress/element": "^8.0.1",
-		"@wordpress/eslint-plugin": "^25.4.1",
-		"@wordpress/scripts": "^32.4.1",
+		"@wordpress/api-fetch": "^7.51.0",
+		"@wordpress/base-styles": "^11.0.0",
+		"@wordpress/components": "^37.0.0",
+		"@wordpress/dom-ready": "^4.51.0",
+		"@wordpress/element": "^8.3.0",
+		"@wordpress/eslint-plugin": "^25.7.0",
+		"@wordpress/scripts": "^33.0.0",
 		"eslint": "^9",
-		"eslint-config-prettier": "^10",
-		"eslint-import-resolver-typescript": "^4",
-		"eslint-plugin-react-hooks": "^7",
 		"globals": "^17",
+		"prettier": "npm:wp-prettier@^3",
 		"stylelint": "^17",
 		"stylelint-config-standard-scss": "^17",
 		"stylelint-scss": "^7"

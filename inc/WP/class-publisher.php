@@ -12,7 +12,6 @@ use ChoctawNation\CNHSA_Federation\Transport\HTTP_Gateway;
 use ChoctawNation\CNHSA_Federation\WP\Payload\Location_Payload_Factory;
 use ChoctawNation\CNHSA_Federation\WP\Payload\Service_Payload_Factory;
 use Exception;
-use WP_Error;
 use WP_Post;
 
 /**
@@ -77,7 +76,7 @@ class Publisher {
 		$this->service_payload_factory  = $service_payload_factory;
 		$this->location_payload_factory = $location_payload_factory;
 		$this->notifier                 = $notifier;
-		$this->location_endpoint        = "{$this->gateway->base_url}/{$this->gateway->endpoint}/location";
+		$this->location_endpoint        = "{$this->gateway->base_url}/{$this->gateway->endpoint}/v1/location";
 	}
 
 	/**
@@ -87,7 +86,7 @@ class Publisher {
 	 * @throws Exception If publishing the service fails.
 	 */
 	public function update_services( WP_Post $service_post ): void {
-		$service_url = "{$this->gateway->base_url}/{$this->gateway->endpoint}/service";
+		$service_url = "{$this->gateway->base_url}/{$this->gateway->endpoint}/v2/service";
 		try {
 			$location_payload = $this->build_location_payload( $service_post );
 			// update locations first
@@ -100,16 +99,18 @@ class Publisher {
 					$this->update_locations( $location_post );
 				}
 			}
-			$id               = $this->id_resolver->find_cnhsa_id( $service_post->post_type, $service_post, $this->gateway->base_url );
-			$service_endpoint = $service_url . ( $id ? "/{$id}" : '' );
-			$service_payload  = $this->service_payload_factory->create_payload( $service_post );
+			$id              = $this->id_resolver->find_cnhsa_id( $service_post->post_type, $service_post, $this->gateway->base_url );
+			$service_payload = $this->service_payload_factory->create_payload( $service_post );
 			if ( is_wp_error( $service_payload ) ) {
 				throw new Exception( esc_textarea( 'Building service payload failed: ' . $service_payload->get_error_message() ) );
+			}
+			if ( $id ) {
+				$service_payload['id'] = $id;
 			}
 			if ( ! empty( $location_payload ) ) {
 				$service_payload['location_data'] = $location_payload;
 			}
-			$service_data = $this->gateway->publish_content( $service_endpoint, $service_payload );
+			$service_data = $this->gateway->publish_content( $service_url, $service_payload );
 			if ( isset( $service_data['data']['id'] ) && ! empty( $service_data['data']['id'] ) ) {
 				update_post_meta( $service_post->ID, 'cnhsa_id', $service_data['data']['id'] );
 			}

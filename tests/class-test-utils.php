@@ -22,8 +22,9 @@ class Test_Utils {
 				register_post_type(
 					$post_type,
 					array(
-						'public'     => true,
-						'taxonomies' => array( 'category' ),
+						'public'          => true,
+						'taxonomies'      => array( 'category' ),
+						'page_attributes' => true,
 					)
 				);
 			}

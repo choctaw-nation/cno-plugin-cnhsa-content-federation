@@ -1,14 +1,14 @@
 <?php
 /**
- * Plugin Name:       CNHSA Content Federation
+ * Plugin Name:       [Choctaw Nation of Oklahoma] CNHSA Content Federation
  * Plugin URI:        https://github.com/choctawnation/cno-plugin-cnhsa-content-federation
  * Description:       Allows the CNO site to federate content to and from the CNHSA site.
  * Author:            Choctaw Nation of Oklahoma
  * Author URI:        https://www.choctawnation.com
- * Version:           1.1.3
- * Requires at least: 6.0
+ * Version:           2.0.0
+ * Requires at least: 7.0.0
  * Requires PHP:      8.4
- * Tested up to:      7.0.0
+ * Tested up to:      7.0.2
  * Requires Plugins:  advanced-custom-fields-pro
  *
  * @package           CNHSA_Federation
